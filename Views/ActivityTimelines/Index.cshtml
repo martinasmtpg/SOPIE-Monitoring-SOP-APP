@@ -1,0 +1,296 @@
+﻿@model IEnumerable<AplikasiSOP.Models.Master.ActivityTimeline>
+@{
+    ViewBag.Title = "Master Activity Timeline";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3 style="padding-top:15px;">Master Activity Timeline</h3>
+<div class="row">
+    <div class="well">
+        <div class="pull-right">
+            <button type="button" class="btn btn-success" data-toggle="modal" data-target="#myModal" onclick="ClearScreen()">Tambah Aktivitas</button>
+        </div>
+        <div class="clearfix" style="margin:10px;"></div>
+        <table id="acts" class="table table-bordered table-hover table-responsive table-condensed table-striped">
+            <thead>
+                <tr>
+                    <th class="text-center">No</th>
+                    <th class="text-center col-md-4">Nama Aktivitas</th>
+                    <th class="text-center col-md-1">Hari Kerja</th>
+                    <th class="text-center col-md-2">Persentase Progress (%)</th>
+                    <th class="text-center col-md-2">Sum Persentase Progress (%)</th>
+                    <th class="text-center col-md-3">Opsi</th>
+                </tr>
+            </thead>
+            <tbody class="tbody"></tbody>
+        </table>
+    </div>
+</div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title" id="myModalLabel">Form Aktivitas</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <input type="hidden" class="form-control" id="Id" />
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label" for="Nama">Aktivitas</label>
+                        <div class="col-sm-9" id="divAktivitasProgress">
+                            <input type="text" class="form-control" required id="AktivitasProgress" placeholder="Aktivitas" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label" for="HariKerja">Hari Kerja</label>
+                        <div class="col-sm-9" id="divHariKerja">
+                            <input type="text" class="form-control" required oninput="this.value = this.value.replace(/[^0-9]/g, '');" id="HariKerja" placeholder="Hari Kerja" onchange="persenprogress()" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label" for="Persentase">Persentase Progress</label>
+                        <div class="col-sm-9" id="divPersentaseProgress">
+                            <input type="text" class="form-control" required id="PersentaseProgress" readonly value="" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-sm-3 control-label" for="SumPersentase">Sum Persentase Progress</label>
+                        <div class="col-sm-9" id="divSumPersentaseProgress">
+                            <input type="text" class="form-control" required id="SumPersentaseProgress" readonly value="" />
+                        </div>
+                    </div>
+
+                    <input type="hidden" class="form-control" id="SumHariKerja" />
+                    <input type="hidden" class="form-control" id="Persen" />
+                    <input type="hidden" class="form-control" id="SumPersen" />
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="Save" onclick="Save();">Save</button>
+                <button type="button" class="btn btn-primary" id="Update" style="display:none;" onclick="Edit();">Update</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="ClearScreen()" ;>Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script src="~/Scripts/jquery-1.12.4.js"></script>
+    <script src="~/Scripts/jquery.dataTables.min.js"></script>
+    <script src="~/Scripts/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/sweetalert/sweetalert.min.js"></script>
+    <link href="~/Content/sweetalert/sweetalert.css" rel="stylesheet" />
+    <script src="~/Scripts/bootstrap.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            LoadDataAktivitas();
+            ClearScreen();
+            $('#acts').DataTable({
+                "aoColumns": [null, null, null, null, null, { "bSortable": false }],
+                "ajax": LoadDataAktivitas(),
+                "scrollx": true
+            });
+        });
+
+
+        function LoadDataAktivitas() {
+            //debugger;
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("Get", "ActivityTimelines")",
+                async: false,
+                dataType: "JSON",
+                success: function (data) {
+                    var html = '';
+                    var i = 1;
+                    $.each(data, function (index, val) {
+                        html += '<tr>';
+                        html += '<td class="text-center">' + i + '</td>';
+                        html += '<td>' + val.AktivitasProgress + '</td>';
+                        html += '<td class="text-center">' + val.HariKerja + '</td>';
+                        html += '<td class="text-center">' + val.PersentaseProgress.toFixed(2) + '</td>';
+                        html += '<td class="text-center">' + val.SumPersentaseProgress.toFixed(2) + '</td>';
+                        html += '<td> <a href="#" class="btn btn-info" onclick="return GetById(' + val.Id + ')">Edit</a>';
+                        html += ' <a href="#" class="btn btn-danger" onclick="return Delete(' + val.Id + ')">Delete</a> </td>';
+                        html += '</tr>';
+                        i++;
+                    });
+                    $('.tbody').html(html);
+                }
+            })
+        }
+
+        function ClearError() {
+            $(".has-error").removeClass("has-error");
+        }
+
+        function persenprogress() {
+            $.ajax({
+                url: '@Url.Action("Sum", "ActivityTimelines")',
+                type: 'GET',
+                dataType: 'json',
+                success: function (result) {
+                    var hari = parseInt($("#HariKerja").val());
+                    var persen = parseFloat((hari / 79) * 100);
+
+                    var sumpersen = persen + result;
+
+                    $("#PersentaseProgress").val(persen.toFixed(2));
+                    $("#SumPersentaseProgress").val(sumpersen.toFixed(2));
+
+                    $("#Persen").val(persen);
+                    $("#SumPersen").val(sumpersen);
+
+                    console.log(sumpersen);
+                }
+            });
+
+            $.ajax({
+                url: '@Url.Action("SumHariKerja", "ActivityTimelines")',
+                type: 'GET',
+                dataType: 'json',
+                success: function (result) {
+                    var hari = parseInt($("#HariKerja").val());
+                    var sumhk = hari + result;
+
+                    $("#SumHariKerja").val(sumhk);
+                }
+            });
+        }
+
+        function Save() {
+            ClearError();
+            if ($.trim($("#AktivitasProgress").val()) == "") { $("#divAktivitasProgress").addClass("has-error"); return; }
+            if ($.trim($("#HariKerja").val()) == "") { $("#divHariKerja").addClass("has-error"); return; }
+            if ($.trim($("#PersentaseProgress").val()) == "") { $("#divPersentaseProgress").addClass("has-error"); return; }
+            if ($.trim($("#SumPersentaseProgress").val()) == "") { $("#divSumPersentaseProgress").addClass("has-error"); return; }
+
+            var act = new Object();
+            act.AktivitasProgress = $('#AktivitasProgress').val();
+            act.HariKerja = $('#HariKerja').val();
+            act.SumHariKerja = $('#SumHariKerja').val();
+            act.PersentaseProgress = $('#Persen').val();
+            act.SumPersentaseProgress = $('#SumPersen').val();
+            console.log(act);
+            $.ajax({
+                url: "@Url.Action("Save", "ActivityTimelines")",
+                type: 'POST',
+                dataType: 'json',
+                data: act,
+                success: function (result) {
+                    LoadDataAktivitas();
+                    $('#myModal').modal('hide');
+                    $('#myModal').removeClass('modal-open');
+                    $('.modal-backdrop').remove();
+                }
+            });
+        }
+
+        function Edit() {
+            ClearError();
+            if ($.trim($("#AktivitasProgress").val()) == "") { $("#divAktivitasProgress").addClass("has-error"); return; }
+            if ($.trim($("#HariKerja").val()) == "") { $("#divHariKerja").addClass("has-error"); return; }
+            if ($.trim($("#PersentaseProgress").val()) == "") { $("#divPersentaseProgress").addClass("has-error"); return; }
+            if ($.trim($("#SumPersentaseProgress").val()) == "") { $("#divSumPersentaseProgress").addClass("has-error"); return; }
+
+            var act = new Object();
+            act.Id = $('#Id').val();
+            act.AktivitasProgress = $('#AktivitasProgress').val();
+            act.HariKerja = $('#HariKerja').val();
+            act.SumHariKerja = $('#SumHariKerja').val();
+            act.PersentaseProgress = replacetitik($('#PersentaseProgress').val());
+            act.SumPersentaseProgress = replacetitik($('#SumPersentaseProgress').val());
+            $.ajax({
+                url: "@Url.Action("Save", "ActivityTimelines")",
+                data: act,
+                type: "POST",
+                dataType: "json",
+                success: function (result) {
+                    LoadDataAktivitas();
+                    ClearScreen();
+                    $('#myModal').modal('hide');
+                    $('#Id').val('');
+                    $('#AktivitasProgress').val('');
+                    $('#HariKerja').val('');
+                    $('#PersentaseProgress').val('');
+                    $('#SumPersentaseProgress').val('');
+                }
+            });
+        }
+
+        function GetById(Id) {
+            //debugger;
+            $.ajax({
+                url: "@Url.Action("GetById", "ActivityTimelines")/" + Id,
+                type: "GET",
+                dataType: "json",
+                success: function (result) {
+                    $('#Id').val(result.Id);
+                    $('#AktivitasProgress').val(result.AktivitasProgress);
+                    $('#HariKerja').val(result.HariKerja);
+                    $('#SumHariKerja').val(result.SumHariKerja);
+                    $('#PersentaseProgress').val(result.PersentaseProgress);
+                    $('#SumPersentaseProgress').val(result.SumPersentaseProgress);
+
+                    $('#Update').show();
+                    $('#Save').hide();
+                    $('#myModal').modal('show');
+                }
+            })
+        }
+
+        function Delete(Id) {
+            swal({
+                title: "Are you sure?",
+                text: "You will not be able to recover this data!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, delete it!",
+                closeOnConfirm: false
+            }, function () {
+                $.ajax({
+                    url: "@Url.Action("Delete", "ActivityTimelines")/" + Id,
+                    type: "POST",
+                    success: function (response) {
+                        swal({
+                            title: "Deleted!",
+                            text: "That data has been delete!",
+                            type: "success"
+                        },
+                        function () {
+                            window.location.href = '@Url.Action("Index", "ActivityTimelines")';
+                        });
+                    },
+                    error: function (response) {
+                        swal("Oops", "We couldn't connect to the server!", "error");
+                    }
+                });
+            });
+        }
+
+        function ClearScreen() {
+            $('#Update').hide();
+            $('#Save').show();
+            $('#Id').val('');
+            $('#AktivitasProgress').val('');
+            $('#HariKerja').val('');
+            $('#PersentaseProgress').val('');
+            $('#SumPersentaseProgress').val('');
+        }
+
+        function replacetitik(angka) {
+            var bil = angka;
+            var loop = Math.floor(angka.length / 3);
+            for (var i = 0; i < loop; i++) {
+                bil = bil.replace('.', ',');
+            }
+            return bil;
+        }
+    </script>
+}
+

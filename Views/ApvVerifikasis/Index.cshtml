@@ -1,0 +1,415 @@
+﻿@model AplikasiSOP.ViewModels.ProgressVM
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="well">
+    <h4 class="text-center col-sm-12"><b>Approval Verifikasi SOP</b></h4>
+    @if (Model.BukuProgressVM.Count() == 0)
+    {
+        <div class="jumbotron center-block">
+            <center><h4>Data tidak tersedia.</h4></center>
+        </div>
+    }
+    else
+    {
+        <div class="panel-group" id="accordionbook">
+            @foreach (var group in Model.BukuProgressVM)
+            {
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <div class="row">
+                            <h3 class="col-md-6 panel-title">
+                                <a data-toggle="collapse" data-parent="#accordionbook" href="#collapsebook@(group.IdBuku)" class="collapsed"><strong>@group.NoBuku. @group.NamaBuku</strong></a>
+                            </h3>
+                        </div>
+                    </div>
+                    <div id="collapsebook@(group.IdBuku)" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            <div class="panel-group" id="accordionbab@(group.IdBuku)">
+                                @foreach (var group1 in group.BabProgressVM)
+                                {
+                                    <div class="panel panel-success">
+                                        <div class="panel-heading">
+                                            <div class="row">
+                                                <h3 class="col-md-12 panel-title">
+                                                    <a data-toggle="collapse" data-parent="#accordionbab@(group.IdBuku)" href="#collapsebab@(group1.IdBab)" class="collapsed"><strong>@group1.NoBab - @group1.NamaBab</strong></a>
+                                                </h3>
+                                            </div>
+                                        </div>
+                                        <div id="collapsebab@(group1.IdBab)" class="panel-collapse collapse in">
+                                            <div class="panel-body">
+                                                <table id="detailsTable@(group1.IdBab)" class="table table-bordered table-hover table-responsive table-condensed table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="text-center">No</th>
+                                                            <th class="text-center col-md-1">Sub Bab</th>
+                                                            <th class="text-center col-md-2">Sub Sub Bab</th>
+                                                            <th class="text-center col-md-1">Tanggal Berlaku</th>
+                                                            <th class="text-center col-md-1">Tanggal Jatuh Tempo</th>
+                                                            <th class="text-center col-md-1">Timeline</th>
+                                                            <th class="text-center col-md-1">Aktivitas Progress</th>
+                                                            <th class="text-center col-md-1">Progress (%)</th>
+                                                            <th class="text-center col-md-1">Aktivitas Target</th>
+                                                            <th class="text-center col-md-1">Target (%)</th>
+                                                            <th class="text-center col-md-1">Status</th>
+                                                            <th class="text-center col-md-1">Progress Status</th>
+                                                            <th class="text-center col-md-1">Opsi</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="tbody">
+                                                        @{ var a = 1;}
+                                                        @if (group1.DetailProgressVM.Count() == 0)
+                                                        {
+                                                            <tr><td colspan="13" rowspan="2" class="text-center"> Data not available </td></tr>
+                                                        }
+                                                        else
+                                                        {
+                                                            foreach (var item in group1.DetailProgressVM)
+                                                            {
+                                                                <tr>
+                                                                    <td>@a</td>
+                                                                    @{ a++;}
+                                                                    <td>@item.DataTransaction.DetailTransaction.Transaction.SubBab.NamaSubBab</td>
+                                                                    <td>@item.DataTransaction.DetailTransaction.Transaction.SubSubBab.NamaSubSubBab</td>
+                                                                    <td class="text-center">@item.DataTransaction.DetailTransaction.Tgl_Berlaku.ToShortDateString()</td>
+                                                                    <td class="text-center">@item.DataTransaction.DetailTransaction.Tgl_JatuhTempo.ToShortDateString()</td>
+                                                                    <td class="text-center">@item.DataTransaction.DetailTransaction.Timeline.ToShortDateString()</td>
+                                                                    <td>@item.DataTransaction.ActivityTimeline.AktivitasProgress</td>
+                                                                    <td class="text-center">@item.DataTransaction.ActivityTimeline.SumPersentaseProgress</td>
+                                                                    <td>@item.AktivitasTarget.AktivitasProgress</td>
+                                                                    <td class="text-center">@item.AktivitasTarget.SumPersentaseProgress</td>
+                                                                    <td class="text-center"><span class="label label-@item.Status.WarnaStatus">@item.Status.NamaStatus</span></td>
+                                                                    <td class="text-center"><span class="label label-@item.DataTransaction.ProgresStatus.WarnaStatus">@item.DataTransaction.ProgresStatus.NamaStatus</span></td>
+                                                                    <td class="text-center">
+                                                                        <a href="#" onclick="LoadView(@item.DataTransaction.DetailTransactionId)" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#ModalView" data-placement="right" title="View"><i class="fa fa-eye"></i></a>
+                                                                    </td>
+                                                                </tr>
+                                                                            }
+                                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                                                        }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                                                                        }
+        </div>
+                                                                        }
+</div>
+
+<div class="modal fade" id="ModalView" tabindex="-1" role="dialog" aria-labelledby="ModalViewLabel" aria-hidden="true">
+    <div class="modal-dialog" style="width:90%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="ModalViewLabel">Detail</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <fieldset>
+                        <input type="hidden" id="IdDetailTrans">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Kelompok</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="Kelompok" style="min-width:100%">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Buku</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="Buku" style="min-width:100%">
+                            </div>
+                            <label class="col-sm-2 control-label">Bab</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="Bab" style="min-width:100%">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Sub Bab</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="SubBab" style="min-width:100%">
+                            </div>
+                            <label class="col-sm-2 control-label">Sub Sub Bab</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="SubSubBab" style="min-width:100%">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Tanggal Berlaku</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="TanggalBerlaku" style="min-width:100%">
+                            </div>
+                            <label class="col-sm-2 control-label">Tanggal Jatuh Tempo</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="TanggalJatuhTempo" style="min-width:100%">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Timeline</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="TanggalTimeline" style="min-width:100%">
+                            </div>
+                            <label class="col-sm-2 control-label">File</label>
+                            <div class="col-sm-4 input-group">
+                                <input type="text" class="form-control" readonly id="PathFiles">
+                                <span class="input-group-btn" id="linkPathFiles"></span>
+                            </div>
+                        </div>
+                        <div class="panel-group" id="accordion">
+                            @foreach (var aspek in Model.AspekPedomanData)
+                            {
+                                <div class="panel panel-default">
+                                    <div class="panel-heading">
+                                        <div class="row">
+                                            <h3 class="col-md-12 panel-title">
+                                                <a data-toggle="collapse" onclick="LoadIsiTabelKebijakan(@aspek.Id)" data-parent="#accordion" href="#collapsed@(aspek.Id)" class="collapsed">@aspek.Nama</a>
+                                            </h3>
+                                        </div>
+                                    </div>
+                                    <div id="collapsed@(aspek.Id)" class="panel-collapse collapse collapsemodal">
+                                        <div class="panel-body">
+                                            <div class="form-horizontal">
+                                                <table id="TabelSummary@(aspek.Id)" class="table table-bordered table-hover">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>No</th>
+                                                            <th>Bab Prosedur / Bab Prosedur</th>
+                                                            <th>Hasil Review</th>
+                                                            <th>Updating</th>
+                                                            <th>Dasar Updating</th>
+                                                            <th>Acuan Updating</th>
+                                                            <th>Keterangan Sebelum</th>
+                                                            <th>Keterangan Sesudah</th>
+                                                            <th>Keterangan</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tbodySummary@(aspek.Id)"></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="ClearScreen()">Close</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="Reject()">Reject</button>
+                <button type="button" class="btn btn-success" data-dismiss="modal" onclick="Approve()">Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <link href="~/Content/sweetalert/sweetalert.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery-1.12.4.js"></script>
+    <script src="~/Content/sweetalert/sweetalert.min.js"></script>
+    <script>
+        function ClearScreen() {
+            $("#IdDetailTransDelete").val('');
+            $("#IdDetailTrans").val('');
+            $("#Kelompok").val('');
+            $("#Buku").val('');
+            $("#Bab").val('');
+            $("#SubBab").val('');
+            $("#SubSubBab").val('');
+            $("#TanggalBerlaku").val('');
+            $("#TanggalJatuhTempo").val('');
+            $("#TanggalTimeline").val('');
+            $("#PathFiles").val('');
+            $("#linkPathFiles").html('');
+            $(".collapsemodal").removeClass("in");
+        }
+
+        function LoadView(id) {
+            $.ajax({
+                url: "@Url.Action("GetViewDetail", "ApvVerifikasis")/" + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function (result) {
+                    ClearScreen();
+                    $("#IdDetailTrans").val(id);
+                    $("#Kelompok").val(result.Transaction.Bab.Kelompok.Nama);
+                    $("#Buku").val(result.Transaction.Bab.Book.NamaBuku);
+                    $("#Bab").val(result.Transaction.Bab.NamaBab);
+                    $("#SubBab").val(result.Transaction.SubBab.NamaSubBab);
+                    $("#SubSubBab").val(result.Transaction.SubSubBab.NamaSubSubBab);
+                    $("#TanggalBerlaku").val(formatDate(result.Tgl_Berlaku));
+                    $("#TanggalJatuhTempo").val(formatDate(result.Tgl_JatuhTempo));
+                    $("#TanggalTimeline").val(formatDate(result.Timeline));
+                    $("#PathFiles").val(result.PathFiles);
+                    var deactive = '';
+                    if (result.PathFiles == null) {
+                        deactive = 'disabled="disabled" readonly="readonly"';
+                    }
+                    $("#linkPathFiles").html('<a href="@Url.Action("DownloadFile", "ApvVerifikasis")?filePath=' + result.PathFiles + '" class="btn btn-default" ' + deactive + '><i class="fa fa-download"></i></a>');
+                }
+            });
+        }
+
+        function LoadIsiTabelKebijakan(aspek) {
+            var dettrans = $("#IdDetailTrans").val();
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetDataSummary", "ApvVerifikasis")",
+                async: false,
+                data: { 'dettrans': dettrans, 'aspek': aspek },
+                dataType: "JSON",
+                success: function (data) {
+                    var html = '';
+                    if (data == "") {
+                        html += '<tr>';
+                        html += '<td colspan="9" rowspan="2" class="text-center"> Data not available </td>';
+                        html += '</tr>';
+                    } else {
+                        var a = 1;
+                        $.each(data, function (index, val) {
+                            html += '<tr>';
+                            html += '<td>' + a + '</td>';
+                            a++;
+                            html += '<td><b>' + val.SubBabProsedur.Nama + '</b><br/>' + val.SubSubBabProsedur.Nama + '</td>';
+                            html += '<td>' + val.HasilReview.Nama + '</td>';
+                            html += '<td>' + val.Updating.Nama + '</td>';
+                            html += '<td>' + val.DasarUpdating.Nama + '</td>';
+                            html += '<td>' + val.AcuanUpdating.Nama + '</td>';
+                            html += '<td>' + val.KetExisting + '</td>';
+                            html += '<td>' + val.KetUpdating + '</td>';
+                            html += '<td>' + val.Keterangan + '</td>';
+                            html += '</tr>';
+                        });
+                    }
+                    $('#tbodySummary' + aspek).html(html);
+                }
+            });
+        }
+
+        function Approve() {
+            var dettrans = $("#IdDetailTrans").val();
+            bootbox.prompt({
+                title: "Are you sure to reject this?",
+                inputType: 'textarea',
+                placeholder: 'Enter Description',
+                buttons: {
+                    cancel: {
+                        label: 'Cancel'
+                    },
+                    confirm: {
+                        label: 'Approve',
+                        className: 'btn-success'
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        items = JSON.stringify({ 'id': dettrans, 'keterangan': result });
+                        $.ajax({
+                            url: "@Url.Action("Approve", "ApvVerifikasis")",
+                            type: 'POST',
+                            dataType: 'json',
+                            contentType: 'application/json; charset=utf-8',
+                            data: items,
+                            success: function () {
+                                swal({
+                                    title: "Success!",
+                                    text: "The data has been saved!",
+                                    type: "success",
+                                    showCancelButton: false,
+                                    showConfirmButton: false,
+                                    timer: 1000,
+                                }, function () {
+                                    window.location.href = "@Url.Action("Index", "ApvVerifikasis")";
+                                });
+                            },
+                            error: function (response) {
+                                swal("Oops", "We couldn't connect to the server!", "error");
+                            }
+                        });
+                    } else if (result == "") {
+                        swal({
+                            title: "Failed!",
+                            text: "Please enter a description!",
+                            type: "warning",
+                            showCancelButton: false,
+                            showConfirmButton: false,
+                            timer: 1000,
+                        });
+                    }
+                }
+            });
+        }
+
+        function Reject() {
+            var dettrans = $("#IdDetailTrans").val();
+            bootbox.prompt({
+                title: "Are you sure to reject this?",
+                inputType: 'textarea',
+                placeholder: 'Enter Description',
+                buttons: {
+                    cancel: {
+                        label: 'Cancel'
+                    },
+                    confirm: {
+                        label: 'Reject',
+                        className: 'btn-danger'
+                    }
+                },
+                callback: function (result) {
+                    if (result) {
+                        items = JSON.stringify({ 'id': dettrans, 'keterangan': result });
+                        $.ajax({
+                            url: "@Url.Action("Reject", "ApvVerifikasis")",
+                            type: 'POST',
+                            dataType: 'json',
+                            contentType: 'application/json; charset=utf-8',
+                            data: items,
+                            success: function () {
+                                swal({
+                                    title: "Success!",
+                                    text: "The data has been saved!",
+                                    type: "success",
+                                    showCancelButton: false,
+                                    showConfirmButton: false,
+                                    timer: 1000,
+                                }, function () {
+                                    window.location.href = "@Url.Action("Index", "ApvVerifikasis")";
+                                });
+                            },
+                            error: function (response) {
+                                swal("Oops", "We couldn't connect to the server!", "error");
+                            }
+                        });
+                    } else if (result == "") {
+                        swal({
+                            title: "Failed!",
+                            text: "Please enter a description!",
+                            type: "warning",
+                            showCancelButton: false,
+                            showConfirmButton: false,
+                            timer: 1000,
+                        });
+                    }
+                }
+            });
+        }
+
+        function formatDate(dates) {
+            date = new Date(parseInt(dates.substr(6)));
+            var year = date.getFullYear();
+            var month = (1 + date.getMonth()).toString();
+            month = month.length > 1 ? month : '0' + month;
+            var day = date.getDate().toString();
+            day = day.length > 1 ? day : '0' + day;
+            return day + '/' + month + '/' + year;
+        }
+
+    </script>
+}
+

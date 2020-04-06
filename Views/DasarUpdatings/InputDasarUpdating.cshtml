@@ -1,0 +1,191 @@
+﻿@model IEnumerable<AplikasiSOP.Models.Master.Summary.DasarUpdating>
+    @{
+        ViewBag.Title = "InputDasarUpdating";
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+
+    <h3 style="padding-top:15px;">Master Dasar Updating</h3>
+    <div class="row">
+        <div class="well">
+            <div class="pull-right">
+                <button type="button" class="btn btn-success" data-toggle="modal" data-target="#myModal" onclick="ClearScreen()">Tambah Dasar Updating</button>
+            </div>
+            <div class="clearfix" style="margin:10px;"></div>
+            <table id="dasarupdatings" class="table table-bordered table-hover table-responsive table-condensed table-striped">
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Jenis Dasar Updating</th>
+                        <th>Opsi</th>
+                    </tr>
+                </thead>
+                <tbody class="tbody"></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                    <h4 class="modal-title" id="myModalLabel">Form Jenis Dasar Updating</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <input type="hidden" class="form-control" id="Id" />
+                        <div class="form-group">
+                            <label for="Jenis">Jenis Dasar Updating</label>
+                            <input type="text" class="form-control" id="JenisDasarUpdating" placeholder="Jenis Dasar Updating" />
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="Save" onclick="Save();">Save</button>
+                    <button type="button" class="btn btn-primary" id="Update" style="display:none;" onclick="Edit();">Update</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal" onclick="ClearScreen()" ;>Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @section Scripts{
+
+        <script src="~/Scripts/jquery-1.12.4.js"></script>
+        <script src="~/Scripts/jquery.dataTables.min.js"></script>
+        <script src="~/Scripts/dataTables.bootstrap.min.js"></script>
+        <script src="~/Content/sweetalert/sweetalert.min.js"></script>
+        <link href="~/Content/sweetalert/sweetalert.css" rel="stylesheet" />
+        <script src="~/Scripts/bootstrap.js"></script>
+        @*<script src="~/Scripts/dataTables.bootstrap.js"></script>*@
+        @*<script src="~/Scripts/jquery.dataTables.js"></script>*@
+
+        <script>
+        $(document).ready(function () {
+            LoadData();
+            ClearScreen();
+            $('#dasarupdatings').DataTable({
+                "aoColumns": [null, null, { "bSortable": false }],
+                "ajax": LoadData(),
+                "scrollx": true
+            });
+        });
+
+
+        function LoadData() {
+            //debugger;
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("Get", "DasarUpdatings")",
+                async: false,
+                dataType: "JSON",
+                success: function (data) {
+                    var html = '';
+                    var i = 1;
+                    console.log(data);
+                    $.each(data, function (index, val) {
+                        console.log(val);
+                        html += '<tr>';
+                        html += '<td>' + i + '</td>';
+                        html += '<td>' + val.JenisDasarUpdating + '</td>';
+                        html += '<td> <a href="#" class="btn btn-info" onclick="return GetById(' + val.Id + ')">Edit</a>';
+                        html += ' <a href="#" class="btn btn-danger" onclick="return Delete(' + val.Id + ')">Delete</a> </td>';
+                        html += '</tr>';
+                        i++;
+                    });
+                    $('.tbody').html(html);
+                }
+            })
+        }
+
+        function Save() {
+            var dasarupdating = new Object();
+            dasarupdating.JenisDasarUpdating = $('#JenisDasarUpdating').val();
+            $.ajax({
+                url: "@Url.Action("Save", "DasarUpdatings")",
+                type: 'POST',
+                dataType: 'json',
+                data: dasarupdating,
+                success: function (result) {
+                    LoadData();
+                    $('#myModal').modal('hide');
+                    $('#myModal').removeClass('modal-open');
+                    $('.modal-backdrop').remove();
+                }
+            });
+        }
+
+        function Edit() {
+            var dasarupdating = new Object();
+            dasarupdating.Id = $('#Id').val();
+            dasarupdating.JenisDasarUpdating = $('#JenisDasarUpdating').val();
+            $.ajax({
+                url: "@Url.Action("Save", "DasarUpdatings")",
+                data: dasarupdating,
+                type: "POST",
+                dataType: "json",
+                success: function (result) {
+                    LoadData();
+                    ClearScreen();
+                    $('#myModal').modal('hide');
+                    $('#Id').val('');
+                    $('#JenisDasarUpdating').val('');
+                }
+            });
+        }
+
+        function GetById(Id) {
+            //debugger;
+            $.ajax({
+                url: "@Url.Action("GetById", "DasarUpdatings")/" + Id,
+                type: "GET",
+                dataType: "json",
+                success: function (result) {
+                    console.log(result);
+                    $('#Id').val(result.Id);
+                    $('#JenisDasarUpdating').val(result.JenisDasarUpdating);
+
+                    $('#Update').show();
+                    $('#Save').hide();
+                    $('#myModal').modal('show');
+                }
+            })
+        }
+
+        function Delete(Id) {
+            swal({
+                title: "Are you sure?",
+                text: "You will not be able to recover this imaginary file!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, delete it!",
+                closeOnConfirm: false
+            }, function () {
+                $.ajax({
+                    url: "@Url.Action("Delete", "DasarUpdatings")/" + Id,
+                    type: "POST",
+                    success: function (response) {
+                        swal({
+                            title: "Deleted!",
+                            text: "That data has been delete!",
+                            type: "success"
+                        },
+                        function () {
+                            window.location.href = '@Url.Action("InputDasarUpdating", "DasarUpdatings")';
+                        });
+                    },
+                    error: function (response) {
+                        swal("Oops", "We couldn't connect to the server!", "error");
+                    }
+                });
+            });
+        }
+
+        function ClearScreen() {
+            $('#Update').hide();
+            $('#Save').show();
+            $('#Id').val('');
+            $('#JenisDasarUpdating').val('');
+        }
+        </script>
+    }

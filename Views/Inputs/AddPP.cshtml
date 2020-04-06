@@ -1,0 +1,853 @@
+﻿@model AplikasiSOP.ViewModels.SummaryVM
+@{
+    ViewBag.Title = "AddPP";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="well" id="section1">
+    <h4 class="text-center col-sm-12"><b>Tambah SOP</b></h4>
+    <div class="form-horizontal">
+        <fieldset>
+            <div class="form-group" id="saveSection1">
+                <div class="col-lg-1 col-lg-offset-11">
+                    <button type="submit" onclick="SubmitTransaksi()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+                </div>
+            </div>
+            <input type="hidden" id="IdDetailTrans">
+            <input type="hidden" id="Book" value="@Model.BabData.Book.Id">
+            <input type="hidden" id="Bab" value="@Model.BabData.Id">
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Kelompok</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" readonly value="@Model.BabData.Kelompok.Nama">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Buku</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" readonly value="@Model.BabData.Book.NamaBuku">
+                </div>
+                <label class="col-sm-2 control-label">Bab</label>
+                <div class="col-sm-4">
+                    <input type="text" class="form-control" readonly value="@Model.BabData.NamaBab">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Sub Bab</label>
+                <div class="col-sm-4" id="divSubBab">
+                    <select required id="SubBab" data-placement="Choose" class="form-control select2 section1" style="width: 100%;"></select>
+                </div>
+                <label class="col-sm-2 control-label">Sub Sub Bab</label>
+                <div class="col-sm-4" id="divSubSubBab">
+                    <select required id="SubSubBab" data-placement="Choose" class="form-control select2 section1" style="width: 100%;"></select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Tanggal Berlaku</label>
+                <div class="col-sm-4" id="divTanggalBerlaku">
+                    <input required type="date" name="TanggalBerlaku" id="TanggalBerlaku" class="form-control section1" onchange="TglJapo()" />
+                </div>
+                <label class="col-sm-2 control-label">Tanggal Jatuh Tempo</label>
+                <div class="col-sm-4" id="divTanggalJatuhTempo">
+                    <input required type="date" name="TanggalJatuhTempo" id="TanggalJatuhTempo" class="form-control section1" onchange="TglTimeline()" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label">Timeline</label>
+                <div class="col-sm-4" id="divTanggalTimeline">
+                    <input required type="date" name="TanggalTimeline" id="TanggalTimeline" class="form-control" readonly />
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</div>
+<div class="well" id="section2">
+    <h4 class="text-center col-sm-12"><b>Summary SOP</b></h4>
+    <div class="form-horizontal">
+        <div class="form-group" id="saveSection2">
+            <div class="col-lg-1 col-lg-offset-11">
+                <button type="submit" onclick="SubmitSummary()" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+            </div>
+        </div>
+    </div>
+    <div class="panel-group" id="accordion">
+        @foreach (var aspek in Model.AspekPedomanData)
+            {
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div class="row">
+                    <h3 class="col-md-12 panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapsed@(aspek.Id)" class="collapsed">@aspek.Nama</a>
+                    </h3>
+                </div>
+            </div>
+            <div id="collapsed@(aspek.Id)" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <div class="col-md-12">
+                        <a onclick="AddPedoman(@aspek.Id, '@aspek.Nama')" class="btn btn-primary btn-sm section2" data-toggle="modal" data-target="#myModal"><i class="fa fa-plus"></i> Add</a>
+                    </div>
+                    <br />
+                    <table id="TabelSummary@(aspek.Id)" class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Bab Prosedur / Sub Bab Prosedur</th>
+                                <th>Hasil Review</th>
+                                <th>Updating</th>
+                                <th>Dasar Updating</th>
+                                <th>Acuan Updating</th>
+                                <th>Keterangan Sebelum</th>
+                                <th>Keterangan Sesudah</th>
+                                <th>Keterangan</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodySummary@(aspek.Id)"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        }
+    </div>
+
+</div>
+<div class="well" id="section3">
+    <h4 class="text-center col-sm-12"><b>File SOP</b></h4>
+    @using (Html.BeginForm("UploadFiles", "Inputs", FormMethod.Post, new { enctype = "multipart/form-data" }))
+    {
+    <div class="form-group" id="saveSection3">
+        <div class="col-lg-1 col-lg-offset-11">
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+        </div>
+    </div>
+    @Html.AntiForgeryToken()
+    <div class="form-horizontal">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.FileModelVM.files, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(model => model.FileModelVM.files, "", new { @type = "file", @multiple = "multiple", @class = "form-control section3" })
+                @Html.ValidationMessageFor(model => model.FileModelVM.files, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        @Html.HiddenFor(model => model.FileModelVM.IdDetailTrans)
+    </div>
+    }
+</div>
+
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel"></h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <fieldset>
+                        <input type="hidden" id="IdSummaryTrans">
+                        <input type="hidden" id="IdAspek">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Sub Bab Prosedur</label>
+                            <div class="col-sm-9" id="divSubBabProsedurId">
+                                <input type="hidden" class="modalhide" id="SubBabProsedurHidden" value="0">
+                                <select required id="SubBabProsedurId" data-placement="Choose" class="form-control select2" style="width: 100%;" onchange="LoadSubSubBabProsedur(); LoadDasarUpdating(); LoadAcuanUpdating();"></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Sub Sub Bab Prosedur</label>
+                            <div class="col-sm-9" id="divSubSubBabProsedurId">
+                                <input type="hidden" class="modalhide" id="SubSubBabProsedurHidden" value="0">
+                                <select required id="SubSubBabProsedurId" data-placement="Choose" readonly="readonly" disabled="disabled" class="form-control select2" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Hasil Review</label>
+                            <div class="col-sm-9" id="divHasilReviewId">
+                                <input type="hidden" class="modalhide" id="HasilReviewHidden" value="0">
+                                <select required id="HasilReviewId" data-placement="Choose" class="form-control select2" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Updating</label>
+                            <div class="col-sm-9" id="divUpdatingId">
+                                <input type="hidden" class="modalhide" id="UpdatingHidden" value="0">
+                                <select required id="UpdatingId" data-placement="Choose" class="form-control select2" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Dasar Updating</label>
+                            <div class="col-sm-9" id="divDasarUpdatingId">
+                                <input type="hidden" class="modalhide" id="DasarUpdatingHidden" value="0">
+                                <select required id="DasarUpdatingId" data-placement="Choose" readonly="readonly" disabled="disabled" class="form-control select2" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Acuan Updating</label>
+                            <div class="col-sm-9" id="divAcuanUpdatingId">
+                                <input type="hidden" class="modalhide" id="AcuanUpdatingHidden" value="0">
+                                <select required id="AcuanUpdatingId" data-placement="Choose" readonly="readonly" disabled="disabled" class="form-control select2" style="width: 100%;"></select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="textArea" class="col-sm-3 control-label">Keterangan Sebelum</label>
+                            <div class="col-sm-9" id="divKetExisting">
+                                <textarea class="form-control" rows="3" id="KetExisting"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="textArea" class="col-sm-3 control-label">Keterangan Sesudah</label>
+                            <div class="col-sm-9" id="divKetUpdating">
+                                <textarea class="form-control" rows="3" id="KetUpdating"></textarea>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="textArea" class="col-sm-3 control-label">Keterangan</label>
+                            <div class="col-sm-9" id="divKeterangan">
+                                <textarea class="form-control" rows="3" id="Keterangan"></textarea>
+                            </div>
+                        </div>
+                    </fieldset>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="Save" onclick="AddSummary()">Add</button>
+                <button type="button" class="btn btn-info" id="Update" style="display:none;" onclick="AddSummary()">Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="ModalDelete" tabindex="-1" role="dialog" aria-labelledby="ModalDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog" style="width:90%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="ModalDeleteLabel">Delete</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <fieldset>
+                        <h4 class="text-center"><b>Are you sure to delete this?</b></h4>
+                        <input type="hidden" id="IdSummaryTransDelete">
+                        <table id="TableModalDelete" class="table table-bordered table-hover table-responsive table-condensed table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Bab Prosedur / Sub Bab Prosedur</th>
+                                    <th>Hasil Review</th>
+                                    <th>Updating</th>
+                                    <th>Dasar Updating</th>
+                                    <th>Acuan Updating</th>
+                                    <th>Keterangan Sebelum</th>
+                                    <th>Keterangan Sesudah</th>
+                                    <th>Keterangan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="tbody"></tbody>
+                        </table>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="DeleteSummary()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+<link href="~/Content/sweetalert/sweetalert.css" rel="stylesheet" />
+<script src="~/Scripts/jquery-1.12.4.js"></script>
+<script src="~/Content/sweetalert/sweetalert.min.js"></script>
+<script>
+    $(document).ready(function () {
+        LoadSubBab();
+        LoadSubSubBab();
+        LoadTabelKebijakan();
+        $('#saveSection2').hide();
+        $('#saveSection3').hide();
+        var x = document.getElementsByClassName("section2");
+        for (var i = 0; i < x.length; i++) {
+            x[i].setAttribute("readonly", "readonly");
+            x[i].setAttribute("disabled", "disabled");
+        }
+        var x = document.getElementsByClassName("section3");
+        for (var i = 0; i < x.length; i++) {
+            x[i].setAttribute("readonly", "readonly");
+            x[i].setAttribute("disabled", "disabled");
+        }
+    });
+
+    function Section2() {
+        $('html, body').animate({
+            scrollTop: $("#section2").offset().top
+        }, 1000);
+        var x = document.getElementsByClassName("section1");
+        for (var i = 0; i < x.length; i++) {
+            x[i].setAttribute("readonly", "readonly");
+        }
+        var x = document.getElementsByClassName("section2");
+        for (var i = 0; i < x.length; i++) {
+            x[i].removeAttribute("readonly");
+            x[i].removeAttribute("disabled");
+        }
+        $(".collapse").addClass("in");
+        $('#saveSection1').hide();
+        $('#saveSection2').show();
+    }
+
+    function Section3() {
+        $('html, body').animate({
+            scrollTop: $("#section3").offset().top
+        }, 1000);
+        var x = document.getElementsByClassName("section2");
+        for (var i = 0; i < x.length; i++) {
+            x[i].setAttribute("readonly", "readonly");
+            x[i].setAttribute("disabled", "disabled");
+        }
+        var x = document.getElementsByClassName("section3");
+        for (var i = 0; i < x.length; i++) {
+            x[i].removeAttribute("readonly");
+            x[i].removeAttribute("disabled");
+        }
+        $('#saveSection2').hide();
+        $('#saveSection3').show();
+    }
+
+    function ClearError() {
+        $(".has-error").removeClass("has-error");
+    }
+
+    function LoadSubBab() {
+        $.ajax({
+            url: "@Url.Action("Get", "SubBabs")",
+            type: 'GET',
+            dataType: 'json',
+            success: function (result) {
+                var subBab = $("#SubBab");
+                subBab.html('');
+                $("<option></option>").val('').text('Pilih Sub Bab').appendTo(subBab);
+                $.each(result, function (i, value) {
+                    $("<option></option>").val(value.Id).text(value.Nomor + " " + value.NamaSubBab).appendTo(subBab);
+                });
+            }
+        });
+    }
+
+    function LoadSubSubBab() {
+        $.ajax({
+            url: "@Url.Action("Get", "SubSubBabs")",
+            type: 'GET',
+            dataType: 'json',
+            success: function (result) {
+                var subSubBab = $("#SubSubBab");
+                subSubBab.html('');
+                $("<option></option>").val('').text('Pilih Sub Sub Bab').appendTo(subSubBab);
+                $.each(result, function (i, value) {
+                    $("<option></option>").val(value.Id).text(value.Nomor + " " + value.NamaSubSubBab).appendTo(subSubBab);
+                });
+            }
+        });
+    }
+
+    function TglJapo() {
+        //Jatuh Tempo
+        var tglberlaku = $("#TanggalBerlaku").val();
+        var d = new Date(tglberlaku);
+        var year = d.getFullYear() + 1;
+        var month = d.getMonth() + 1;
+        var day = d.getDate();
+        if (day < 10) {
+            day = '0' + day;
+        }
+        if (month < 10) {
+            month = '0' + month;
+        }
+        var Japo = year + '-' + month + '-' + day;
+
+        $("#TanggalJatuhTempo").val(Japo);
+        TglTimeline();
+    }
+
+    function TglTimeline() {
+        //Timeline
+        var tgljapo = $("#TanggalJatuhTempo").val();
+        var d = new Date(tgljapo);
+        var startDate = d;
+        var endDate = "", noOfDaysToAdd = 0, count = 0;
+
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetSum", "ActivityTimelines")",
+            dataType: "JSON",
+            success: function (result) {
+                noOfDaysToAdd = result;
+                while (count < noOfDaysToAdd) {
+                    endDate = new Date(startDate.setDate(startDate.getDate() - 1));
+                    if (endDate.getDay() != 0 && endDate.getDay() != 6) {
+                        //Date.getDay() gives weekday starting from 0(Sunday) to 6(Saturday)
+                        count++;
+                    }
+                }
+                var Tyear = endDate.getFullYear();
+                var Tmonth = endDate.getMonth() + 1;
+                var Tday = endDate.getDate();
+                if (Tday < 10) {
+                    Tday = '0' + Tday;
+                }
+                if (Tmonth < 10) {
+                    Tmonth = '0' + Tmonth;
+                }
+                var Timeline = Tyear + '-' + Tmonth + '-' + Tday;
+
+                $("#TanggalTimeline").val(Timeline);
+            }
+        });        
+    }
+
+    function SubmitTransaksi() {
+        ClearError();
+        if ($.trim($("#SubBab").val()) == "") { $("#divSubBab").addClass("has-error"); return; }
+        if ($.trim($("#SubSubBab").val()) == "") { $("#divSubSubBab").addClass("has-error"); return; }
+        if ($.trim($("#TanggalBerlaku").val()) == "") { $("#divTanggalBerlaku").addClass("has-error"); return; }
+        if ($.trim($("#TanggalJatuhTempo").val()) == "") { $("#divTanggalJatuhTempo").addClass("has-error"); return; }
+        if ($.trim($("#TanggalTimeline").val()) == "") { $("#divTanggalTimeline").addClass("has-error"); return; }
+
+        var trans = new Object();
+        trans.BabId = $('#Bab').val();
+        trans.SubBabId = $('#SubBab').val();
+        trans.SubSubBabId = $('#SubSubBab').val();
+
+        var detail = new Object();
+        detail.Tgl_Berlaku = $("#TanggalBerlaku").val();
+        detail.Tgl_JatuhTempo = $("#TanggalJatuhTempo").val();
+        detail.Timeline = $("#TanggalTimeline").val();
+
+        $.ajax({
+            url: "@Url.Action("SubmitTransaksi", "Inputs")",
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            data: JSON.stringify({ 'trans': trans, 'detail': detail }),
+            success: function (result) {
+                $("#IdDetailTrans").val(result.Id);
+                $("#FileModelVM_IdDetailTrans").val(result.Id);
+                Section2();
+                swal({
+                    title: "Success!",
+                    text: "The data has been saved!",
+                    type: "success",
+                    showCancelButton: false,
+                    showConfirmButton: false,
+                    timer: 1000,
+                });
+            },
+            error: function (response) {
+                swal("Oops", "We couldn't connect to the server!", "error");
+            }
+        });
+    }
+
+    function LoadTabelKebijakan() {
+        var dettrans = 0;
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("Get", "AspekPedomans")",
+            dataType: "JSON",
+            success: function (data) {
+                $.each(data, function (index, val) {
+                    LoadIsiTabelKebijakan(dettrans, val.Id);
+                });
+            }
+        });
+    }
+
+    function LoadIsiTabelKebijakan(dettrans, aspek) {
+        $.ajax({
+            type: "GET",
+            url: "@Url.Action("GetDataSummary", "Inputs")",
+            async: false,
+            data: { 'dettrans': dettrans, 'aspek': aspek },
+            dataType: "JSON",
+            success: function (data) {
+                var html = '';
+                if (data == "") {
+                    html += '<tr>';
+                    html += '<td colspan="10" rowspan="2" class="text-center"> Data not available </td>';
+                    html += '</tr>';
+                } else {
+                    var a = 1;
+                    $.each(data, function (index, val) {
+                        html += '<tr>';
+                        html += '<td>' + a + '</td>';
+                        a++;
+                        html += '<td><b>' + val.SubBabProsedur.Nama + '</b><br/>' + val.SubSubBabProsedur.Nama + '</td>';
+                        html += '<td>' + val.HasilReview.Nama + '</td>';
+                        html += '<td>' + val.Updating.Nama + '</td>';
+                        html += '<td>' + val.DasarUpdating.Nama + '</td>';
+                        html += '<td>' + val.AcuanUpdating.Nama + '</td>';
+                        html += '<td>' + val.KetExisting + '</td>';
+                        html += '<td>' + val.KetUpdating + '</td>';
+                        html += '<td>' + val.Keterangan + '</td>';
+                        html += '<td> <a href="#" class="btn btn-info btn-xs section2" onclick="return GetById(' + val.Id + ',' + aspek + ')" data-placement="right" title="Edit" readonly="readonly" disabled="disabled"><i class="fa fa-edit"></i></a>';
+                        html += ' <a href="#" class="btn btn-danger btn-xs section2" onclick="return Delete(' + val.Id + ')"  data-toggle="modal" data-target="#ModalDelete" data-placement="right" title="Delete" readonly="readonly" disabled="disabled"><i class="fa fa-trash"></i></a> </td>';
+                        html += '</tr>';
+                    });
+                }
+                $('#tbodySummary' + aspek).html(html);
+            }
+        });
+    }
+
+    function AddPedoman(aspek, value) {
+        ClearError();
+        ClearSummary();
+        LoadSubBabProsedur(aspek);
+        LoadHasilReview();
+        LoadUpdating();
+        $('#myModalLabel').html('Tambah Data Aspek Pedoman ' + value);
+        $("#IdAspek").val(aspek);
+    }
+
+    function GetById(Id, aspek) {
+        $.ajax({
+            url: "@Url.Action("GetDataSummaryById", "Inputs")/" + Id,
+            type: "GET",
+            dataType: "json",
+            success: function (result) {
+                ClearError();
+                ClearSummary();
+                $('#SubBabProsedurHidden').val(result.SubBabProsedurId);
+                $('#SubSubBabProsedurHidden').val(result.SubSubBabProsedurId);
+                $('#HasilReviewHidden').val(result.HasilReviewId);
+                $('#UpdatingHidden').val(result.UpdatingId);
+                $('#DasarUpdatingHidden').val(result.DasarUpdatingId);
+                $('#AcuanUpdatingHidden').val(result.AcuanUpdatingId);
+                LoadSubBabProsedur(aspek);
+                LoadHasilReview();
+                LoadUpdating();
+                $("#KetExisting").val(result.KetExisting);
+                $("#KetUpdating").val(result.KetUpdating);
+                $("#Keterangan").val(result.Keterangan);
+                $('#myModalLabel').html('Edit Data Aspek Pedoman ' + result.AspekPedoman.Nama);
+                $("#IdSummaryTrans").val(result.Id);
+                $("#IdAspek").val(aspek);
+                $('#myModal').modal('show');
+                $('#Update').show();
+                $('#Save').hide();
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        })
+    }
+
+    function Delete(Id, i) {
+        $.ajax({
+            url: "@Url.Action("GetDataSummaryById", "Inputs")/" + Id,
+            type: "GET",
+            dataType: "json",
+            success: function (result) {
+                $("#IdSummaryTransDelete").val(Id);
+                var html = '';
+                if (result == "") {
+                    html += '<tr>';
+                    html += '<td colspan="8" rowspan="2" class="text-center"> Data not available </td>';
+                    html += '</tr>';
+                } else {
+                    html += '<tr>';
+                    html += '<td><b>' + result.SubBabProsedur.Nama + '</b><br/>' + result.SubSubBabProsedur.Nama + '</td>';
+                    html += '<td>' + result.HasilReview.Nama + '</td>';
+                    html += '<td>' + result.Updating.Nama + '</td>';
+                    html += '<td>' + result.DasarUpdating.Nama + '</td>';
+                    html += '<td>' + result.AcuanUpdating.Nama + '</td>';
+                    html += '<td>' + result.KetExisting + '</td>';
+                    html += '<td>' + result.KetUpdating + '</td>';
+                    html += '<td>' + result.Keterangan + '</td>';
+                    html += '</tr>';
+                }
+                $('#TableModalDelete .tbody').html(html);
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        })
+    }
+
+    function ClearSummary() {
+        $("#IdSummaryTrans").val('');
+        $("#SubBabProsedurId").val('');
+        $("#SubBabProsedurId").html('');
+        $("#SubSubBabProsedurId").val('');
+        $("#SubSubBabProsedurId").html('');
+        $("#SubSubBabProsedurId").attr("readonly", "readonly");
+        $("#SubSubBabProsedurId").attr("disabled", "disabled");
+        $("#HasilReviewId").val('');
+        $("#UpdatingId").val('');
+        $("#DasarUpdatingId").val('');
+        $("#DasarUpdatingId").html('');
+        $("#DasarUpdatingId").attr("readonly", "readonly");
+        $("#DasarUpdatingId").attr("disabled", "disabled");
+        $("#AcuanUpdatingId").val('');
+        $("#AcuanUpdatingId").html('');
+        $("#AcuanUpdatingId").attr("readonly", "readonly");
+        $("#AcuanUpdatingId").attr("disabled", "disabled");
+        $("#KetExisting").val('');
+        $("#KetUpdating").val('');
+        $("#Keterangan").val('');
+        var x = document.getElementsByClassName("modalhide");
+        for (var i = 0; i < x.length; i++) {
+            x[i].value = 0;
+        }
+    }
+
+    function LoadSubBabProsedur(aspek) {
+        var data = $('#SubBabProsedurHidden').val();
+        var IdBook = $('#Book').val();
+        $.ajax({
+            url: "@Url.Action("GetSubBabProsedur", "Settings")",
+            type: 'GET',
+            data: { 'book': IdBook, 'aspek': aspek },
+            dataType: 'json',
+            success: function (result) {
+                var subBabProsedur = $("#SubBabProsedurId");
+                subBabProsedur.html('');
+                $("<option></option>").val('').text('Pilih Hasil Review').appendTo(subBabProsedur);
+                $.each(result, function (i, value) {
+                    $("<option></option>").val(value.SubBabProsedur.Id).text(value.SubBabProsedur.Nama).appendTo(subBabProsedur);
+                });
+                if (data != 0) {
+                    $("#SubBabProsedurId").val(data).trigger('change');
+                    LoadSubSubBabProsedur();
+                    LoadDasarUpdating();
+                    LoadAcuanUpdating();
+                }
+            }
+        });
+    }
+
+    function LoadSubSubBabProsedur() {
+        var aspek = $("#IdAspek").val();
+        var data = $('#SubSubBabProsedurHidden').val();
+        var IdBook = $('#Book').val();
+        var id = $('#SubBabProsedurId').val();
+        $.ajax({
+            url: "@Url.Action("GetSubSubBabProsedur", "Settings")",
+            type: 'GET',
+            data: { 'book': IdBook, 'aspek': aspek, 'subbab': id },
+            dataType: 'json',
+            success: function (result) {
+                var subSubBabProsedur = $("#SubSubBabProsedurId");
+                subSubBabProsedur.removeAttr("readonly");
+                subSubBabProsedur.removeAttr("disabled");
+                subSubBabProsedur.html('');
+                $("<option></option>").val('').text('Pilih Hasil Review').appendTo(subSubBabProsedur);
+                $.each(result, function (i, value) {
+                    $("<option></option>").val(value.SubSubBabProsedur.Id).text(value.SubSubBabProsedur.Nama).appendTo(subSubBabProsedur);
+                });
+                if (data != 0) {
+                    $("#SubSubBabProsedurId").val(data).trigger('change');
+                }
+            }
+        });
+    }
+
+    function LoadHasilReview() {
+        var data = $('#HasilReviewHidden').val();
+        $.ajax({
+            url: "@Url.Action("Get", "HasilReviews")",
+            type: 'GET',
+            dataType: 'json',
+            success: function (result) {
+                var hasilReview = $("#HasilReviewId");
+                hasilReview.html('');
+                $("<option></option>").val('').text('Pilih Hasil Review').appendTo(hasilReview);
+                $.each(result, function (i, value) {
+                    $("<option></option>").val(value.Id).text(value.Nama).appendTo(hasilReview);
+                });
+                if (data != 0) {
+                    $("#HasilReviewId").val(data).trigger('change');
+                }
+            }
+        });
+    }
+
+    function LoadUpdating() {
+        var data = $('#UpdatingHidden').val();
+        $.ajax({
+            url: "@Url.Action("Get", "Updatings")",
+            type: 'GET',
+            dataType: 'json',
+            success: function (result) {
+                var updating = $("#UpdatingId");
+                updating.html('');
+                $("<option></option>").val('').text('Pilih Updating').appendTo(updating);
+                $.each(result, function (i, value) {
+                    $("<option></option>").val(value.Id).text(value.Nama).appendTo(updating);
+                });
+                if (data != 0) {
+                    $("#UpdatingId").val(data).trigger('change');
+                }
+            }
+        });
+    }
+
+    function LoadDasarUpdating() {
+        var aspek = $("#IdAspek").val();
+        var data = $('#DasarUpdatingHidden').val();
+        var IdBook = $('#Book').val();
+        var id = $('#SubBabProsedurId').val();
+        $.ajax({
+            url: "@Url.Action("GetDasarUpdating", "Settings")",
+            type: 'GET',
+            data: { 'book': IdBook, 'aspek': aspek, 'subbab': id },
+            dataType: 'json',
+            success: function (result) {
+                var dasarUpdating = $("#DasarUpdatingId");
+                dasarUpdating.removeAttr("readonly");
+                dasarUpdating.removeAttr("disabled");
+                dasarUpdating.html('');
+                $("<option></option>").val('').text('Pilih Dasar Updating').appendTo(dasarUpdating);
+                $.each(result, function (i, value) {
+                    $("<option></option>").val(value.DasarUpdating.Id).text(value.DasarUpdating.Nama).appendTo(dasarUpdating);
+                });
+                if (data != 0) {
+                    $("#DasarUpdatingId").val(data).trigger('change');
+                }
+            }
+        });
+    }
+
+    function LoadAcuanUpdating() {
+        var aspek = $("#IdAspek").val();
+        var data = $('#AcuanUpdatingHidden').val();
+        var IdBook = $('#Book').val();
+        var id = $('#SubBabProsedurId').val();
+        $.ajax({
+            url: "@Url.Action("GetAcuanUpdating", "Settings")",
+            type: 'GET',
+            data: { 'book': IdBook, 'aspek': aspek, 'subbab': id },
+            dataType: 'json',
+            success: function (result) {
+                var acuanUpdating = $("#AcuanUpdatingId");
+                acuanUpdating.removeAttr("readonly");
+                acuanUpdating.removeAttr("disabled");
+                acuanUpdating.html('');
+                $("<option></option>").val('').text('Pilih Acuan Updating').appendTo(acuanUpdating);
+                $.each(result, function (i, value) {
+                    $("<option></option>").val(value.AcuanUpdating.Id).text(value.AcuanUpdating.Nama).appendTo(acuanUpdating);
+                });
+                if (data != 0) {
+                    $("#AcuanUpdatingId").val(data).trigger('change');
+                }
+            }
+        });
+    }
+
+    function AddSummary() {
+        ClearError();
+        if ($.trim($("#SubBabProsedurId").val()) == "") { $("#divSubBabProsedurId").addClass("has-error"); return; }
+        if ($.trim($("#SubSubBabProsedurId").val()) == "") { $("#divSubSubBabProsedurId").addClass("has-error"); return; }
+        if ($.trim($("#HasilReviewId").val()) == "") { $("#divHasilReviewId").addClass("has-error"); return; }
+        if ($.trim($("#UpdatingId").val()) == "") { $("#divUpdatingId").addClass("has-error"); return; }
+        if ($.trim($("#DasarUpdatingId").val()) == "") { $("#divDasarUpdatingId").addClass("has-error"); return; }
+        if ($.trim($("#AcuanUpdatingId").val()) == "") { $("#divAcuanUpdatingId").addClass("has-error"); return; }
+        if ($.trim($("#KetExisting").val()) == "") { $("#divKetExisting").addClass("has-error"); return; }
+        if ($.trim($("#KetUpdating").val()) == "") { $("#divKetUpdating").addClass("has-error"); return; }
+        if ($.trim($("#Keterangan").val()) == "") { $("#divKeterangan").addClass("has-error"); return; }
+
+        var aspek = $("#IdAspek").val();
+        var dettrans = $('#IdDetailTrans').val();
+
+        var keterangan = 'added';
+        var summary = new Object();
+        if ($.trim($("#IdSummaryTrans").val()) == "") {
+            keterangan = 'added';
+        } else {
+            summary.Id = $("#IdSummaryTrans").val();
+            keterangan = 'updated';
+        }
+        summary.DetailTransactionId = dettrans;
+        summary.SubBabProsedurId = $('#SubBabProsedurId').val();
+        summary.SubSubBabProsedurId = $('#SubSubBabProsedurId').val();
+        summary.AspekPedomanId = aspek;
+        summary.HasilReviewId = $('#HasilReviewId').val();
+        summary.UpdatingId = $('#UpdatingId').val();
+        summary.DasarUpdatingId = $('#DasarUpdatingId').val();
+        summary.AcuanUpdatingId = $('#AcuanUpdatingId').val();
+        summary.KetExisting = $('#KetExisting').val();
+        summary.KetUpdating = $('#KetUpdating').val();
+        summary.Keterangan = $('#Keterangan').val();
+        $.ajax({
+            url: "@Url.Action("AddSummary", "Inputs")",
+            type: 'POST',
+            dataType: 'json',
+            contentType: 'application/json; charset=utf-8',
+            data: JSON.stringify({ 'summary': summary }),
+            success: function (result) {
+                LoadIsiTabelKebijakan(dettrans, aspek);
+                Section2();
+                $('#myModal').modal('hide');
+                swal({
+                    title: "Success!",
+                    text: "The data has been " + keterangan + "!",
+                    type: "success",
+                    showCancelButton: false,
+                    showConfirmButton: false,
+                    timer: 1000,
+                });
+            },
+            error: function (response) {
+                swal("Oops", "We couldn't connect to the server!", "error");
+            }
+        });
+    }
+
+    function DeleteSummary() {
+        var IdSummaryTransDelete = $("#IdSummaryTransDelete").val();
+        $.ajax({
+            url: "@Url.Action("DeleteDataSummary", "Inputs")/" + IdSummaryTransDelete,
+            type: 'GET',
+            dataType: 'json',
+            success: function () {
+                LoadTabelKebijakan();
+                Section2();
+                $('#ModalDelete').modal('hide');
+                swal({
+                    title: "Success!",
+                    text: "The data has been deleted!",
+                    type: "success",
+                    showCancelButton: false,
+                    showConfirmButton: false,
+                    timer: 1000,
+                });
+            },
+            error: function (response) {
+                swal("Oops", "We couldn't connect to the server!", "error");
+            }
+        });
+    }
+
+    function SubmitSummary() {
+        var dettrans = $('#IdDetailTrans').val();
+        $.ajax({
+            url: "@Url.Action("SubmitSummary", "Inputs")/" + dettrans,
+            type: 'GET',
+            dataType: 'json',
+            success: function () {
+                Section3();
+                swal({
+                    title: "Success!",
+                    text: "The data has been saved!",
+                    type: "success",
+                    showCancelButton: false,
+                    showConfirmButton: false,
+                    timer: 1000,
+                });
+            },
+            error: function (response) {
+                swal("Oops", "We couldn't connect to the server!", "error");
+            }
+        });
+    }
+
+</script>

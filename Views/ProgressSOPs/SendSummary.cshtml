@@ -1,0 +1,76 @@
+﻿@model IEnumerable<AplikasiSOP.ViewModels.InputSummaryVM>
+@{
+    ViewBag.Title = "SendSummary";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3 style="padding-top:15px;" class="text-center">Summary Update Pedoman Perusahaan</h3>
+
+<div class="row" id="myDiv">
+    <div class="well">
+        <div class="clearfix" style="margin:10px;"></div>
+        <div class="row form-horizontal">
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Buku PP</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" readonly value="@ViewBag.getbukubab.Book.NamaBuku">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Bab PP</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" readonly value="@ViewBag.getbukubab.NamaBab">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Sub Bab PP</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" readonly value="@ViewBag.getsubbab.NamaSubBab">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 control-label">Sub Sub Bab PP</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" readonly value="@ViewBag.getsubsubbab.NamaSubSubBab">
+                    </div>
+                </div>
+            <div class="form-group">
+                <label for="aspek" class="col-sm-2 control-label">Aspek Pedoman</label>
+                @Html.DropDownList("NamaAspek", (SelectList)ViewBag.AspekPedoman, "--pilih--", new { @class ="form-control col-sm-10" })<br />
+            </div>
+            <div class="form-group">
+                <label for="hasilreview" class="col-sm-2 control-label">Hasil Review</label>
+                @Html.DropDownList("JenisHasilReview", (SelectList)ViewBag.HasilReview, "--pilih--", new { @class = "form-control col-sm-10" })<br />
+            </div>
+            <div class="form-group">
+                <label for="updating" class="col-sm-2 control-label">Updating</label>
+                @Html.DropDownList("JenisUpdating", (SelectList)ViewBag.Updating, "--pilih--", new { @class = "form-control col-sm-10" })<br />
+            </div>
+            <div class="form-group">
+                <label for="dasarupdating" class="col-sm-2 control-label">Dasar Updating</label>
+                @Html.DropDownList("JenisDasarUpdating", (SelectList)ViewBag.DasarUpdating, "--pilih--", new { @class = "form-control col-sm-10" })<br />
+            </div>
+            <div class="form-group">
+                <label for="acuanupdating" class="col-sm-2 control-label">Acuan Updating</label>
+                @Html.DropDownList("JenisAcuanUpdating", (SelectList)ViewBag.AcuanUpdating, "--pilih--", new { @class = "form-control col-sm-10" })<br />
+            </div>
+            <div class="form-group">
+                <label for="ketexisting" class="col-sm-2 control-label">Keterangan Existing</label>
+                @Html.TextArea("Message", new { rows = 10, cols = 40, @class = "form-control col-sm-10" })
+            </div>
+            <div class="form-group">
+                <label for="ketupdating" class="col-sm-2 control-label">Keterangan Updating</label>
+                @Html.TextArea("Message", new { rows = 10, cols = 40, @class = "form-control col-sm-10" })
+                @*@Html.TextBoxFor(model => model.InputSummary, new { @class = "form-control round-input", @style = "width:200px" })*@
+            </div>
+            <div class="form-group">
+                <label for="dasarpenyusunan" class="col-sm-2 control-label">Dasar Penyusunan</label>
+                @Html.TextArea("Message", new { rows = 10, cols = 40, @class = "form-control col-sm-10" })
+            </div>
+            <div class="form-group" >
+                <input type="submit" value="Submit" onclick="location.href='@Url.Action("SubmitSummary", "ProgressSOPs", new { @class = "btn btn-success" })'" />
+            </div>
+            
+        </div>
+    </div>
+</div>

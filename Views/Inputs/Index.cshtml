@@ -1,0 +1,579 @@
+﻿@model AplikasiSOP.ViewModels.ProgressVM
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="well">
+    <h4 class="text-center col-sm-12"><b>Tambah - Update SOP</b></h4>
+    @if (Model.BukuProgressVM.Count() == 0)
+    {
+        <div class="jumbotron center-block">
+            <center><h4>Data tidak tersedia.</h4></center>
+        </div>
+    }
+    else
+    {
+        <div class="panel-group" id="accordionbook">
+            @foreach (var group in Model.BukuProgressVM)
+            {
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <div class="row">
+                            <h3 class="col-md-6 panel-title">
+                                <a data-toggle="collapse" data-parent="#accordionbook" href="#collapsebook@(group.IdBuku)" class="collapsed"><strong>@group.NoBuku. @group.NamaBuku</strong></a>
+                            </h3>
+                        </div>
+                    </div>
+                    <div id="collapsebook@(group.IdBuku)" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            <div class="panel-group" id="accordionbab@(group.IdBuku)">
+                                @foreach (var group1 in group.BabProgressVM)
+                                {
+                                    <div class="panel panel-success">
+                                        <div class="panel-heading">
+                                            <div class="row">
+                                                <h3 class="col-md-12 panel-title">
+                                                    <a data-toggle="collapse" data-parent="#accordionbab@(group.IdBuku)" href="#collapsebab@(group1.IdBab)" class="collapsed"><strong>@group1.NoBab - @group1.NamaBab</strong></a>
+                                                </h3>
+                                            </div>
+                                        </div>
+                                        <div id="collapsebab@(group1.IdBab)" class="panel-collapse collapse in">
+                                            <div class="panel-body">
+                                                <div class="col-md-12">
+                                                    @Html.ActionLink("Add", "AddPP", new { id = group1.IdBab }, new { @class = "btn btn-success btn-sm" })
+                                                </div>
+                                                <br />
+                                                <table id="detailsTable@(group1.IdBab)" class="table table-bordered table-hover table-responsive table-condensed table-striped">
+                                                    <thead>
+                                                        <tr>
+                                                            <th class="text-center">No</th>
+                                                            <th class="text-center col-md-1">Sub Bab</th>
+                                                            <th class="text-center col-md-2">Sub Sub Bab</th>
+                                                            <th class="text-center col-md-1">Tanggal Berlaku</th>
+                                                            <th class="text-center col-md-1">Tanggal Jatuh Tempo</th>
+                                                            <th class="text-center col-md-1">Timeline</th>
+                                                            <th class="text-center col-md-1">Aktivitas Progress</th>
+                                                            <th class="text-center col-md-1">Progress (%)</th>
+                                                            <th class="text-center col-md-1">Aktivitas Target</th>
+                                                            <th class="text-center col-md-1">Target (%)</th>
+                                                            <th class="text-center col-md-1">Status</th>
+                                                            <th class="text-center col-md-1">Progress Status</th>
+                                                            <th class="text-center col-md-1">Aksi</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="tbody">
+                                                        @{ var a = 1;}
+                                                        @if (group1.DetailProgressVM.Count() == 0)
+                                                        {
+                                                            <tr><td colspan="13" rowspan="2" class="text-center"> Data not available </td></tr>
+                                                        }
+                                                        else
+                                                        {
+                                                            foreach (var item in group1.DetailProgressVM)
+                                                            {
+                                                                <tr>
+                                                                    <td>@a</td>
+                                                                    @{ a++;}
+                                                                    <td>@item.DataTransaction.DetailTransaction.Transaction.SubBab.NamaSubBab</td>
+                                                                    <td>@item.DataTransaction.DetailTransaction.Transaction.SubSubBab.NamaSubSubBab</td>
+                                                                    <td class="text-center">@item.DataTransaction.DetailTransaction.Tgl_Berlaku.ToShortDateString()</td>
+                                                                    <td class="text-center">@item.DataTransaction.DetailTransaction.Tgl_JatuhTempo.ToShortDateString()</td>
+                                                                    <td class="text-center">@item.DataTransaction.DetailTransaction.Timeline.ToShortDateString()</td>
+                                                                    <td>@item.DataTransaction.ActivityTimeline.AktivitasProgress</td>
+                                                                    <td class="text-center">@item.DataTransaction.ActivityTimeline.SumPersentaseProgress</td>
+                                                                    @if (item.DataTransaction.ActivityTimeline.Id == 16)
+                                                                    {
+                                                                        <td class="text-center">-</td>
+                                                                        <td class="text-center">-</td>
+                                                                        <td class="text-center">-</td>
+                                                                        <td class="text-center">-</td>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <td>@item.AktivitasTarget.AktivitasProgress</td>
+                                                                        <td class="text-center">@item.AktivitasTarget.SumPersentaseProgress.ToString("N2")</td>
+                                                                        <td class="text-center"><span class="label label-@item.Status.WarnaStatus">@item.Status.NamaStatus</span></td>
+                                                                        <td class="text-center"><span class="label label-@item.DataTransaction.ProgresStatus.WarnaStatus">@item.DataTransaction.ProgresStatus.NamaStatus</span></td>
+                                                                    }
+                                                                    <td class="text-center">
+                                                                        @if (item.DataTransaction.ActivityTimeline.Id == 16)
+                                                                        {
+                                                                            <a href="#" onclick="LoadUpdate(@item.DataTransaction.DetailTransactionId, @item.DataTransaction.Id)" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#ModalView" data-placement="right" title="Edit"><i class="fa fa-edit"></i></a>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <a href="@Url.Action("EditPP", "Inputs")/@item.DataTransaction.DetailTransactionId" class="btn btn-info btn-xs" data-toggle="tooltip" data-placement="right" title="Edit"><i class="fa fa-edit"></i></a>
+                                                                        }
+                                                                        <a href="#" onclick="LoadView(@item.DataTransaction.DetailTransactionId, @item.DataTransaction.Id)" class="btn btn-primary btn-xs" data-toggle="modal" data-target="#ModalView" data-placement="right" title="View"><i class="fa fa-eye"></i></a>
+                                                                        <a href="#" onclick="LoadDelete(@item.DataTransaction.DetailTransactionId)" class="btn btn-danger btn-xs" data-toggle="modal" data-target="#ModalDelete" data-placement="right" title="Delete"><i class="fa fa-trash"></i></a>
+                                                                    </td>
+                                                                </tr>
+                                                                            }
+                                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                                                        }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                                                                        }
+        </div>
+                                                                        }
+</div>
+<div class="modal fade" id="ModalView" tabindex="-1" role="dialog" aria-labelledby="ModalViewLabel" aria-hidden="true">
+    <div class="modal-dialog" style="width:90%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="ModalViewLabel"></h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <fieldset>
+                        <input type="hidden" id="IdDetailTrans">
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Kelompok</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="Kelompok" style="min-width:100%">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Buku</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="Buku" style="min-width:100%">
+                            </div>
+                            <label class="col-sm-2 control-label">Bab</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="Bab" style="min-width:100%">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Sub Bab</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="SubBab" style="min-width:100%">
+                            </div>
+                            <label class="col-sm-2 control-label">Sub Sub Bab</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="SubSubBab" style="min-width:100%">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Tanggal Berlaku</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="TanggalBerlaku" style="min-width:100%">
+                            </div>
+                            <label class="col-sm-2 control-label">Tanggal Jatuh Tempo</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="TanggalJatuhTempo" style="min-width:100%">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-2 control-label">Timeline</label>
+                            <div class="col-sm-4">
+                                <input type="text" class="form-control" readonly id="TanggalTimeline" style="min-width:100%">
+                            </div>
+                            <label class="col-sm-2 control-label">File</label>
+                            <div class="col-sm-4 input-group">
+                                <input type="text" class="form-control" readonly id="PathFiles">
+                                <span class="input-group-btn" id="linkPathFiles"></span>
+                            </div>
+                        </div>
+                        <div id="divKeterangan" class="form-group">
+                            <label for="textArea" class="col-sm-2 control-label">Keterangan</label>
+                            <div class="col-sm-4">
+                                <textarea class="form-control" readonly rows="3" id="Keterangan" style="min-width:100%"></textarea>
+                            </div>
+                        </div>
+                        <div class="panel-group" id="accordion">
+                            @foreach (var aspek in Model.AspekPedomanData)
+                            {
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <div class="row">
+                                        <h3 class="col-md-12 panel-title">
+                                            <a data-toggle="collapse" onclick="LoadIsiTabelKebijakan(@aspek.Id)" data-parent="#accordion" href="#collapsed@(aspek.Id)" class="collapsed">@aspek.Nama</a>
+                                        </h3>
+                                    </div>
+                                </div>
+                                <div id="collapsed@(aspek.Id)" class="panel-collapse collapse collapsemodal">
+                                    <div class="panel-body">
+                                        <div class="form-horizontal">
+                                            <table id="TabelSummary@(aspek.Id)" class="table table-bordered table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>No</th>
+                                                        <th>Bab Prosedur / Bab Prosedur</th>
+                                                        <th>Hasil Review</th>
+                                                        <th>Updating</th>
+                                                        <th>Dasar Updating</th>
+                                                        <th>Acuan Updating</th>
+                                                        <th>Keterangan Sebelum</th>
+                                                        <th>Keterangan Sesudah</th>
+                                                        <th>Keterangan</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="tbodySummary@(aspek.Id)"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            }
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="ClearScreen()">Close</button>
+                <button type="button" class="btn btn-primary" id="BtnUpdate" style="display:none;" onclick="Update();">Update</button>
+                <button type="button" class="btn btn-success" id="BtnRelevan" style="display:none;" onclick="Relevan();">Relevan</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="ModalDelete" tabindex="-1" role="dialog" aria-labelledby="ModalDeleteLabel" aria-hidden="true">
+    <div class="modal-dialog" style="width:90%">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="ModalDeleteLabel">Delete</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <fieldset>
+                        <h4 class="text-center"><b>Are you sure to delete this?</b></h4>
+                        <input type="hidden" id="IdDetailTransDelete">
+                        <table id="TableModalDelete" class="table table-bordered table-hover table-responsive table-condensed table-striped">
+                            <thead>
+                                <tr>
+                                    <th class="text-center col-md-1">Sub Bab</th>
+                                    <th class="text-center col-md-2">Sub Sub Bab</th>
+                                    <th class="text-center col-md-1">Tanggal Berlaku</th>
+                                    <th class="text-center col-md-1">Tanggal Jatuh Tempo</th>
+                                    <th class="text-center col-md-1">Timeline</th>
+                                    <th class="text-center col-md-1">Aktivitas Progress</th>
+                                    <th class="text-center col-md-1">Progress (%)</th>
+                                    <th class="text-center col-md-1">Aktivitas Target</th>
+                                    <th class="text-center col-md-1">Target (%)</th>
+                                    <th class="text-center col-md-1">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="tbody"></tbody>
+                        </table>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="ClearScreen()">Close</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" onclick="SubmitDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+    <link href="~/Content/sweetalert/sweetalert.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery-1.12.4.js"></script>
+    <script src="~/Content/sweetalert/sweetalert.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#divKeterangan").hide();
+        });
+
+        function ClearScreen() {
+            $('#ModalViewLabel').html('');
+            $('#BtnUpdate').hide();
+            $('#BtnRelevan').hide();
+            $("#IdDetailTransDelete").val('');
+            $("#IdDetailTrans").val('');
+            $("#Kelompok").val('');
+            $("#Buku").val('');
+            $("#Bab").val('');
+            $("#SubBab").val('');
+            $("#SubSubBab").val('');
+            $("#TanggalBerlaku").val('');
+            $("#TanggalJatuhTempo").val('');
+            $("#TanggalTimeline").val('');
+            $("#PathFiles").val('');
+            $("#linkPathFiles").html('');
+            $("#Keterangan").html('');
+            $("#divKeterangan").hide();
+            $(".collapsemodal").removeClass("in");
+        }
+
+        function LoadUpdate(id, idhistory) {
+            $.ajax({
+                url: "@Url.Action("GetViewDetail", "Inputs")/" + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function (result) {
+                    ClearScreen();
+                    $('#ModalViewLabel').html('Update');
+                    $('#BtnUpdate').show();
+                    $('#BtnRelevan').show();
+                    $("#IdDetailTrans").val(id);
+                    $("#Kelompok").val(result.Transaction.Bab.Kelompok.Nama);
+                    $("#Buku").val(result.Transaction.Bab.Book.NamaBuku);
+                    $("#Bab").val(result.Transaction.Bab.NamaBab);
+                    $("#SubBab").val(result.Transaction.SubBab.NamaSubBab);
+                    $("#SubSubBab").val(result.Transaction.SubSubBab.NamaSubSubBab);
+                    $("#TanggalBerlaku").val(formatDate(result.Tgl_Berlaku));
+                    $("#TanggalJatuhTempo").val(formatDate(result.Tgl_JatuhTempo));
+                    $("#TanggalTimeline").val(formatDate(result.Timeline));
+                    $("#PathFiles").val(result.PathFiles);
+                    var deactive = '';
+                    if (result.PathFiles == null) {
+                        deactive = 'disabled="disabled" readonly="readonly"';
+                    }
+                    $("#linkPathFiles").html('<a href="@Url.Action("DownloadFile", "Inputs")?filePath=' + result.PathFiles + '" class="btn btn-default" ' + deactive + '><i class="fa fa-download"></i></a>');
+                }
+            });
+        }
+
+        function LoadView(id, idhistory) {
+            $.ajax({
+                url: "@Url.Action("GetViewDetail", "Inputs")/" + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function (result) {
+                    ClearScreen();
+                    $('#ModalViewLabel').html('Detail');
+                    $("#IdDetailTrans").val(id);
+                    $("#Kelompok").val(result.Transaction.Bab.Kelompok.Nama);
+                    $("#Buku").val(result.Transaction.Bab.Book.NamaBuku);
+                    $("#Bab").val(result.Transaction.Bab.NamaBab);
+                    $("#SubBab").val(result.Transaction.SubBab.NamaSubBab);
+                    $("#SubSubBab").val(result.Transaction.SubSubBab.NamaSubSubBab);
+                    $("#TanggalBerlaku").val(formatDate(result.Tgl_Berlaku));
+                    $("#TanggalJatuhTempo").val(formatDate(result.Tgl_JatuhTempo));
+                    $("#TanggalTimeline").val(formatDate(result.Timeline));
+                    $("#PathFiles").val(result.PathFiles);
+                    var deactive = '';
+                    if (result.PathFiles == null) {
+                        deactive = 'disabled="disabled" readonly="readonly"';
+                    }
+                    $("#linkPathFiles").html('<a href="@Url.Action("DownloadFile", "Inputs")?filePath=' + result.PathFiles + '" class="btn btn-default" ' + deactive + '><i class="fa fa-download"></i></a>');
+
+                    $.ajax({
+                        url: "@Url.Action("GetViewHistory", "Inputs")/" + idhistory,
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (data) {
+                            $("#Keterangan").html(data.ApproveKeterangan);
+                            $("#divKeterangan").show();
+                        }
+                    });
+                }
+            });
+        }
+
+        function LoadIsiTabelKebijakan(aspek) {
+            var dettrans = $("#IdDetailTrans").val();
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetDataSummary", "Inputs")",
+                async: false,
+                data: { 'dettrans': dettrans, 'aspek': aspek },
+                dataType: "JSON",
+                success: function (data) {
+                    var html = '';
+                    if (data == "") {
+                        html += '<tr>';
+                        html += '<td colspan="9" rowspan="2" class="text-center"> Data not available </td>';
+                        html += '</tr>';
+                    } else {
+                        var a = 1;
+                        $.each(data, function (index, val) {
+                            html += '<tr>';
+                            html += '<td>' + a + '</td>';
+                            a++;
+                            html += '<td><b>' + val.SubBabProsedur.Nama + '</b><br/>' + val.SubSubBabProsedur.Nama + '</td>';
+                            html += '<td>' + val.HasilReview.Nama + '</td>';
+                            html += '<td>' + val.Updating.Nama + '</td>';
+                            html += '<td>' + val.DasarUpdating.Nama + '</td>';
+                            html += '<td>' + val.AcuanUpdating.Nama + '</td>';
+                            html += '<td>' + val.KetExisting + '</td>';
+                            html += '<td>' + val.KetUpdating + '</td>';
+                            html += '<td>' + val.Keterangan + '</td>';
+                            html += '</tr>';
+                        });
+                    }
+                    $('#tbodySummary' + aspek).html(html);
+                }
+            });
+        }
+
+        function Update() {
+            var dettrans = $("#IdDetailTrans").val();
+            $.ajax({
+                url: "@Url.Action("Update", "Inputs")/" + dettrans,
+                type: 'GET',
+                dataType: 'json',
+                success: function (result) {
+                    ClearScreen();
+                    swal({
+                        title: "Success!",
+                        text: "The data has been saved!",
+                        type: "success",
+                        showCancelButton: false,
+                        showConfirmButton: false,
+                        timer: 1000,
+                    }, function () {
+                        window.location.href = "@Url.Action("EditPP", "Inputs")/" + result.Id;
+                    });
+                },
+                error: function (response) {
+                    swal("Oops", "We couldn't connect to the server!", "error");
+                }
+            });
+        }
+
+        function Relevan() {
+            var dettrans = $("#IdDetailTrans").val();
+
+            var tglberlaku = $("#TanggalJatuhTempo").val();
+            var d = new Date(tglberlaku);
+            var year = d.getFullYear() + 1;
+            var month = d.getMonth() + 1;
+            var day = d.getDate();
+            if (day < 10) {
+                day = '0' + day;
+            }
+            if (month < 10) {
+                month = '0' + month;
+            }
+            var newJapo = year + '-' + month + '-' + day;
+
+            var d = new Date(newJapo);
+            var startDate = d;
+            var endDate = "", noOfDaysToAdd = 0, count = 0;
+
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetSum", "ActivityTimelines")",
+                dataType: "JSON",
+                success: function (result) {
+                    noOfDaysToAdd = result;
+                    while (count < noOfDaysToAdd) {
+                        endDate = new Date(startDate.setDate(startDate.getDate() - 1));
+                        if (endDate.getDay() != 0 && endDate.getDay() != 6) {
+                            //Date.getDay() gives weekday starting from 0(Sunday) to 6(Saturday)
+                            count++;
+                        }
+                    }
+                    var Tyear = endDate.getFullYear();
+                    var Tmonth = endDate.getMonth() + 1;
+                    var Tday = endDate.getDate();
+                    if (Tday < 10) {
+                        Tday = '0' + Tday;
+                    }
+                    if (Tmonth < 10) {
+                        Tmonth = '0' + Tmonth;
+                    }
+                    var newTimeline = Tyear + '-' + Tmonth + '-' + Tday;
+
+                    var detail = new Object();
+                    detail.Tgl_JatuhTempo = newJapo;
+                    detail.Timeline = newTimeline;
+
+                    $.ajax({
+                        url: "@Url.Action("Relevan", "Inputs")",
+                        type: 'POST',
+                        dataType: 'json',
+                        contentType: 'application/json; charset=utf-8',
+                        data: JSON.stringify({ 'id': dettrans, 'detail': detail }),
+                        success: function () {
+                            ClearScreen();
+                            swal({
+                                title: "Success!",
+                                text: "The data has been saved!",
+                                type: "success",
+                                showCancelButton: false,
+                                showConfirmButton: false,
+                                timer: 1000,
+                            }, function () {
+                                window.location.href = "@Url.Action("Index", "Inputs")";
+                            });
+                        },
+                        error: function (response) {
+                            swal("Oops", "We couldn't connect to the server!", "error");
+                        }
+                    });
+                }
+            });
+        }
+
+        function LoadDelete(id) {
+            $.ajax({
+                url: "@Url.Action("GetViewDelete", "Inputs")/" + id,
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    ClearScreen();
+                    $("#IdDetailTransDelete").val(id);
+                    var html = '';
+                    if (data == "") {
+                        html += '<tr>';
+                        html += '<td colspan="10" rowspan="2" class="text-center"> Data not available </td>';
+                        html += '</tr>';
+                    } else {
+                        html += '<tr>';
+                        html += '<td>' + data.DataTransaction.DetailTransaction.Transaction.SubBab.NamaSubBab + '</td>';
+                        html += '<td>' + data.DataTransaction.DetailTransaction.Transaction.SubSubBab.NamaSubSubBab + '</td>';
+                        html += '<td class="text-center">' + formatDate(data.DataTransaction.DetailTransaction.Tgl_Berlaku) + '</td>';
+                        html += '<td class="text-center">' + formatDate(data.DataTransaction.DetailTransaction.Tgl_JatuhTempo) + '</td>';
+                        html += '<td class="text-center">' + formatDate(data.DataTransaction.DetailTransaction.Timeline) + '</td>';
+                        html += '<td>' + data.DataTransaction.ActivityTimeline.AktivitasProgress + '</td>';
+                        html += '<td class="text-center">' + data.DataTransaction.ActivityTimeline.SumPersentaseProgress + '</td>';
+                        html += '<td>' + data.AktivitasTarget.AktivitasProgress + '</td>';
+                        html += '<td class="text-center">' + data.AktivitasTarget.SumPersentaseProgress + '</td>';
+                        html += '<td class="text-center"><span class="label label-' + data.Status.WarnaStatus + '">' + data.Status.NamaStatus + '</span></td>';
+                        html += '</tr>';
+                    }
+                    $('#TableModalDelete .tbody').html(html);
+                }
+            });
+        }
+
+        function SubmitDelete() {
+            var dettrans = $("#IdDetailTransDelete").val();
+            $.ajax({
+                url: "@Url.Action("GetDelete", "Inputs")/" + dettrans,
+                type: 'GET',
+                dataType: 'json',
+                success: function () {
+                    ClearScreen();
+                    swal({
+                        title: "Success!",
+                        text: "The data has been deleted!",
+                        type: "success",
+                        showCancelButton: false,
+                        showConfirmButton: false,
+                        timer: 1000,
+                    }, function () {
+                        window.location.href = "@Url.Action("Index", "Inputs")";
+                    });
+                },
+                error: function (response) {
+                    swal("Oops", "We couldn't connect to the server!", "error");
+                }
+            });
+        }
+
+        function formatDate(dates) {
+            date = new Date(parseInt(dates.substr(6)));
+            var year = date.getFullYear();
+            var month = (1 + date.getMonth()).toString();
+            month = month.length > 1 ? month : '0' + month;
+            var day = date.getDate().toString();
+            day = day.length > 1 ? day : '0' + day;
+            return day + '/' + month + '/' + year;
+        }
+
+    </script>
+}

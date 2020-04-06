@@ -1,0 +1,418 @@
+﻿@model IEnumerable<AplikasiSOP.ViewModels.TempMapedVM>
+@using Microsoft.AspNet.Identity
+@using Microsoft.AspNet.Identity.EntityFramework;
+@using AplikasiSOP.Models;
+@{
+    ViewBag.Title = "Mapping Document";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    var manager = new UserManager<ApplicationUser>(new UserStore<ApplicationUser>(new ApplicationDbContext()));
+    var currentUser = manager.FindById(User.Identity.GetUserId());
+}
+
+<h3 style="padding-top:15px;">Mapping Document</h3>
+
+<div class="row" id="myDiv">
+    <div class="well">
+        <div class="clearfix" style="margin:10px;"></div>
+        <div class="row form-horizontal">
+            <div class="col-sm-4">
+                <div class="form-group">
+                    <label class="col-sm-3 control-label">Kelompok</label>
+                    <div class="col-sm-9">
+                        <input type="text" class="form-control" readonly value="@currentUser.Kelompok">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel-group" id="accordionbook">
+            @foreach (var group in Model)
+            {
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <div class="row">
+                            <h3 class="col-md-6 panel-title">
+                                <a data-toggle="collapse" data-parent="#accordionbook" href="#collapsebook@(group.IdBuku)" class="collapsed"><strong>@group.NoBuku. @group.NamaBuku</strong></a>
+                            </h3>
+                        </div>
+                    </div>
+                    <div id="collapsebook@(group.IdBuku)" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            <div class="panel-group" id="accordionbab@(group.IdBuku)">
+                                @foreach (var group1 in group.BabGroup)
+                                {
+                                    <div class="panel panel-success">
+                                        <div class="panel-heading">
+                                            <div class="row">
+                                                <h3 class="col-md-12 panel-title">
+                                                    <a data-toggle="collapse" data-parent="#accordionbab@(group.IdBuku)" href="#collapsebab@(group1.IdBab)" class="collapsed"><strong>@group1.NoBab - @group1.NamaBab</strong></a>
+                                                </h3>
+                                            </div>
+                                        </div>
+                                        <div id="collapsebab@(group1.IdBab)" class="panel-collapse collapse">
+                                            <div class="panel-body">
+                                                <div class="form-horizontal">
+                                                    <div class="col-md-1">
+                                                        <a onclick="toList('@group.NamaBuku', '@group1.NamaBab', @group.IdBuku, @group1.IdBab)" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#myModal"><i class="fa fa-plus"></i> Add</a><br><br />
+                                                    </div>
+                                                    <table id="detailsTable@(group1.IdBab)" class="table table-bordered table-hover table-responsive table-condensed table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th class="text-center col-md-1">Sub Bab</th>
+                                                                <th class="text-center col-md-2">Sub Sub Bab</th>
+                                                                <th class="text-center col-md-1">Tanggal Berlaku</th>
+                                                                <th class="text-center col-md-1">Tanggal Jatuh Tempo</th>
+                                                                <th class="text-center col-md-1">Timeline</th>
+                                                                <th class="text-center col-md-1">Aktivitas Progress</th>
+                                                                <th class="text-center col-md-1">Progress (%)</th>
+                                                                <th class="text-center col-md-1">Aktivitas Target</th>
+                                                                <th class="text-center col-md-1">Target (%)</th>
+                                                                <th class="text-center col-md-1">Status</th>
+                                                                <th class="text-center col-md-1">Opsi</th>
+                                                            </tr>
+                                                        </thead>
+                                                        @*<tbody class="tbody">
+                                                            @foreach (var item in group1.Temp)
+                                                            {
+                                                                <tr>
+                                                                    <td>@item.NamaSubBab</td>
+                                                                    <td>@item.NamaSubSubBab</td>
+                                                                    <td class="text-center">@item.Tgl_Berlaku.ToShortDateString()</td>
+                                                                    <td class="text-center">@item.Tgl_JatuhTempo.ToShortDateString()</td>
+                                                                    <td class="text-center">@item.Timeline.ToShortDateString()</td>
+                                                                    <td>@item.AktivitasProgress</td>
+                                                                    <td class="text-center">@item.PersentaseProgress</td>
+                                                                    <td>@item.AktivitasTarget</td>
+                                                                    <td class="text-center">@item.PersentaseTarget</td>
+                                                                    <td class="text-center"><span class="label label-@item.WarnaStatus">@item.NamaStatus</span></td>
+                                                                    <td style="display:none;" class="idBab">@group1.IdBab</td>
+                                                                    <td style="display:none;" class="idBuku">@group.IdBuku</td>
+                                                                    <td style="display:none;" class="idTemp">@item.IdTemp</td>
+                                                                    <td class="text-center">
+                                                                        <a data-itemId="0" href="#" class="btn btn-info btn-xs editItem" data-toggle="tooltip" data-placement="right" title="Update"><i class="fa fa-edit"></i></a>
+                                                                        <a data-itemId="0" href="@Url.Action("SendSummary", new {id = item.IdTemp})" class="btn btn-warning btn-xs sendItem" data-toggle="tooltip" data-placement="right" title="Summary"><i class="fa fa-send"></i></a><br />
+                                                                        <a data-itemId="0" href="#" class="btn btn-success btn-xs downloadItem"><i class="fa fa-download" data-toggle="tooltip" data-placement="right" title="Download"></i></a>
+                                                                        <a data-itemId="0" href="#" class="btn btn-primary btn-xs uploadItem"><i class="fa fa-upload" data-toggle="tooltip" data-placement="right" title="Upload"></i></a><br />
+                                                                        <a data-itemId="0" href="#" class="btn btn-danger btn-xs deleteItem"><i class="fa fa-remove" data-toggle="tooltip" data-placement="right" title="Delete"></i></a>
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>*@
+                                                    </table>
+                                                    @*<div class="row">
+                                                        <h5 class="col-md-offset-7 col-md-2 text-left"><b>Progress :</b></h5>
+                                                        <h5 class="col-md-2 text-left"><b id="ProgressBab@(group1.IdBab)">%</b></h5>
+                                                        <h5 class="col-md-offset-7 col-md-2 text-center"><b>Target :</b></h5>
+                                                        <h5 class="col-md-2 text-center"><b id="TargetBab@(group1.IdBab)">%</b></h5>
+                                                        <h5 class="col-md-offset-7 col-md-2 text-right"><b>Status Schedule :</b></h5>
+                                                            <h5 class="col-md-2 text-right"><b id="StatusScheduleBab@(group1.IdBab)">..</b></h5>
+                                                    </div>*@
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title" id="myModalLabel">Form Pedoman</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-horizontal">
+                    <input type="hidden" class="form-control" id="BukuId" />
+                    <input type="hidden" class="form-control" id="BabId" />
+                    <div class="form-group">
+                        <label for="Buku">Buku</label>
+                        <input type="text" class="form-control" id="BukuModal" readonly value="">
+                    </div>
+                    <div class="form-group">
+                        <label for="Bab">Bab</label>
+                        <input type="text" class="form-control" id="BabModal" readonly value="">
+                    </div>
+                    <div class="form-group">
+                        <label for="SubBab">Sub Bab</label>
+                        <select required id="SubBab" data-placement="Choose" class="form-control input-sm select2" style="width: 100%;"></select>
+                        @*<select id="SubBab" data-placement="Choose" class="form-control select2"></select>*@
+                    </div>
+                    <div class="form-group">
+                        <label for="SubSubBab">Sub Sub Bab</label>
+                        <select id="SubSubBab" data-placement="Choose" class="form-control select2"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="AktivitasProgress">Aktivitas Progress</label>
+                        <select id="AktivitasProgress" data-placement="Choose" class="form-control"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Berlaku</label>
+                        <input required type="date" name="TanggalBerlaku" id="TanggalBerlaku" class="form-control"  onchange="TglJapo()"/>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Jatuh Tempo</label>
+                        <input required type="date" name="TanggalJatuhTempo" id="TanggalJatuhTempo" class="form-control" />
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="Save" onclick="Save();">Save</button>
+                <button type="button" class="btn btn-primary" id="Update" style="display:none;" onclick="Edit();">Update</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="ClearScreen()" ;>Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script src="~/Scripts/jquery-1.12.4.js"></script>
+    <script src="~/Scripts/jquery.dataTables.min.js"></script>
+    <script src="~/Scripts/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/sweetalert/sweetalert.min.js"></script>
+    <link href="~/Content/sweetalert/sweetalert.css" rel="stylesheet" />
+    @*<script src="~/Scripts/bootstrap.js"></script>*@
+
+    <script>
+        $(document).ready(function () {
+            //$('.select2').select2();
+            //LoadPedoman();
+            LoadSubBabCombo();
+            LoadSubSubBabCombo();
+            LoadAktivitas();
+            ClearScreen();
+            //$('#detailsTable').DataTable({
+            //    "aoColumns": [null, null, null, null, null, null, null, null, null, null, { "bSortable": false }],
+            //    "ajax": LoadPedoman(),
+            //    "scrollx": true
+            //});
+        });
+
+        @*function LoadPedoman() {
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("GetActivity", "ProgressSOPs")",
+                async: false,
+                dataType: "JSON",
+                success: function (data) {
+                    var html = '';
+                    var i = 1;
+                    console.log(data);
+                    
+                    $.each(data, function (index, val) {
+                        html += '<tr>';
+                        html += '<td>' + i + '</td>';
+                        html += '<td>' + val.SubBab + '</td>';
+                        html += '<td>' + val.SubSubBab + '</td>';
+                        html += '<td>' + formatDate(val.TanggalBerlaku) + '</td>';
+                        html += '<td>' + formatDate(val.TanggalJatuhTempo) + '</td>';
+                        html += '<td>' + formatDate(val.TimeLine) + '</td>';
+                        html += '<td>' + val.AktivitasProgress + '</td>';
+                        html += '<td>' + val.AktivitasTarget + '</td>';
+                        html += '<td>' + val.PersentaseTarget + '</td>';
+                        html += '<td>' + val.StatusId + '</td>';
+                        html += '<td> <a href="#" class="btn btn-info" onclick="return GetById(' + val.Id + ')"><i class="fa fa-edit"></i></a>';
+                        html += ' <a href="#" class="btn btn-danger" onclick="return Delete(' + val.Id + ')"><i class="fa fa-remove"></i></a> </td>';
+                        html += '</tr>';
+                        i++;
+                    });
+                    $('.tbody').html(html);
+                }
+            })
+        }*@
+
+        function LoadSubBabCombo() {
+            $.ajax({
+                url: '@Url.Action("Get", "SubBabs")',
+                type: 'GET',
+                dataType: 'json',
+                success: function (result) {
+                    var subbab = $('#SubBab');
+                    $("<option></option>").val("").text("Pilih Sub Bab").appendTo(subbab);
+                    $.each(result, function (i, SubBab) {
+                        $("<option></option>").val(SubBab.Id).text(SubBab.NamaSubBab).appendTo(subbab);
+                    });
+                }
+            });
+        }
+
+        function LoadSubSubBabCombo() {
+            $.ajax({
+                url: '@Url.Action("Get", "SubSubBabs")',
+                type: 'GET',
+                dataType: 'json',
+                success: function (result) {
+                    var subsubbab = $('#SubSubBab');
+                    $("<option></option>").val("").text("Pilih Sub Sub Bab").appendTo(subsubbab);
+                    $.each(result, function (i, SubSubBab) {
+                        $("<option></option>").val(SubSubBab.Id).text(SubSubBab.NamaSubSubBab).appendTo(subsubbab);
+                    });
+                }
+            });
+        }
+
+        function LoadAktivitas() {
+            $.ajax({
+                url: '@Url.Action("Get", "ActivityTimelines")',
+                type: 'GET',
+                dataType: 'json',
+                success: function (result) {
+                    var aktivitas = $('#AktivitasProgress');
+                    $("<option></option>").val("").text("Pilih Aktivitas").appendTo(aktivitas);
+                    $.each(result, function (i, ActivityTimeline) {
+                        $("<option></option>").val(ActivityTimeline.Id).text(ActivityTimeline.AktivitasProgress).appendTo(aktivitas);
+                    });
+                }
+            });
+        }
+
+        function formatDate(dates) {
+            date = new Date(parseInt(dates.substr(6)));
+            var year = date.getFullYear();
+            var month = (1 + date.getMonth()).toString();
+            month = month.length > 1 ? month : '0' + month;
+            var day = date.getDate().toString();
+            day = day.length > 1 ? day : '0' + day;
+            return day + '/' + month + '/' + year
+            ;
+        }
+
+        function TglJapo() {
+            var tglberlaku = $("#TanggalBerlaku").val();
+            console.log(tglberlaku);
+            var d = new Date(tglberlaku);
+            var year = d.getFullYear() + 1;
+            var month = d.getMonth() + 1;
+            var day = d.getDate();
+            if (day < 10) {
+                day = '0' + day;
+            }
+            if (month < 10) {
+                month = '0' + month;
+            }
+            var c = year + '-' + month + '-' + day;
+
+            $("#TanggalJatuhTempo").val(c);
+        }
+
+        function toList(Buku, Bab, IdBuku, IdBab) {
+            debugger;
+            $("#BukuModal").val(Buku);
+            $("#BabModal").val(Bab);
+            $("#BukuId").val(IdBuku);
+            $("#BabId").val(IdBab);
+        }
+            
+        function Save() {
+            debugger;
+           
+            var bukuid = $("#BukuId").val();
+            var babid = $("#BabId").val();
+            var subbabid = $("#SubBab").val();
+            var subsubbabid = $("#SubSubBab").val();
+            var tglberlaku = $("#TanggalBerlaku").val();
+            var tgljapo = $("#TanggalJatuhTempo").val();
+            var aktivitasid = $("#AktivitasProgress").val();
+            var persentaseprogress = $("#PersentaseProgress").val();
+            //var persentasetarget = $("#PersentaseTarget").val();
+
+            var databuku = new Array();
+            var data = {};
+            data.BukuId = bukuid;
+            data.BabId = babid;
+            data.SubBabId = subbabid;
+            data.SubSubBabId = subsubbabid;
+            data.ActivityTimelineId = aktivitasid;
+            data.Tgl_Berlaku = tglberlaku;
+            data.Tgl_JatuhTempo = tgljapo;
+            data.PersentaseProgress = persentaseprogress;
+            //data.PersentaseTarget = persentasetarget;
+            databuku.push(data);
+
+            if (tglberlaku == "") {
+                swal("Oops", "Mohon diisi Tanggal Berlaku dan Timeline", "error");
+            } else {
+                $.ajax({
+                    url: "@Url.Action("Save", "ProgressSOPs")",
+                    type: "POST",
+                    data: JSON.stringify(databuku),
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (result) {
+                        var detailsTableBody = $("#detailsTable" + " tbody");
+                        var isiTable = '<tr><td>' + subbabid +
+                                       '</td><td>' + subsubbabid +
+                                       '</td><td>' + aktivitasid +
+                                       '</td><td class="text-center">' + tglberlaku +
+                                       '</td><td class="text-center">' + tgljapo +
+                                       '</td><td class="text-center">' + persentaseprogress +
+                                       //'</td><td class="text-center">' + persentasetarget +
+                                       '</td><td style="display:none;" class="idTemp">' + result +
+                                       '</td><td class="text-center"><a data-itemId="0" href="#" class="btn btn-info btn-xs editItem"><i class="fa fa-edit"></i></a> <a data-itemId="0" href="#" class="btn btn-danger btn-xs deleteItem"><i class="fa fa-remove"></i></a></td></tr>';
+                        detailsTableBody.append(isiTable);
+                        swal({
+                            title: "Added Successfully!",
+                            text: "That data has been Add!",
+                            type: "success"
+                        //},
+                        //        function () {
+                        //            $('#myModal').modal('hide');
+                        //            window.location.href = '/ProgressSOPs';
+                                });
+                    },
+                    error: function (response) {
+                        swal("Oops", "We failed to Added!", "error");
+
+                    }
+                });
+            }
+        }
+
+        function Delete(Id) {
+            swal({
+                title: "Are you sure?",
+                text: "You will not be able to recover this data!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, delete it!",
+                closeOnConfirm: false
+            }, function () {
+                $.ajax({
+                    url: "@Url.Action("Delete", "ProgressSOPs")/" + Id,
+                    type: "POST",
+                    success: function (response) {
+                        swal({
+                            title: "Deleted!",
+                            text: "That data has been delete!",
+                            type: "success"
+                        },
+                        function () {
+                            window.location.href = '@Url.Action("MappingDocument", "ProgressSOPs")';
+                        });
+                    },
+                    error: function (response) {
+                        swal("Oops", "We couldn't connect to the server!", "error");
+                    }
+                });
+            });
+        }
+
+        function ClearScreen() {
+            $("#TempId").val('');
+            $("#SubBab").val('').trigger('change');
+            $("#SubSubBab").val('').trigger('change');
+            $("#AktivitasProgress").val('').trigger('change');
+        }
+
+    </script>
+}

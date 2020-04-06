@@ -1,0 +1,230 @@
+﻿@model IEnumerable<AplikasiSOP.Models.Master.Bab>
+@{
+    ViewBag.Title = "Master Bab";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3 style="padding-top:15px;">Master Bab</h3>
+<div class="row">
+    <div class="well">
+        <div class="pull-right">
+            <button type="button" class="btn btn-success" data-toggle="modal" data-target="#myModal" onclick="ClearScreen()">Tambah Bab</button>
+        </div>
+        <div class="clearfix" style="margin:10px;"></div>
+        <table id="babs" class="table table-bordered table-hover table-responsive table-condensed table-striped">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Nama Buku</th>
+                    <th>Index Bab</th>
+                    <th>Nama Bab</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="tbody"></tbody>
+        </table>
+    </div>
+</div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title" id="myModalLabel">Form Bab</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <input type="hidden" class="form-control" id="Id" />
+                    <div class="form-group">
+                        <label for="Book">Buku</label>
+                        <select id="Book" data-placement="Choose" class="form-control"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="Nomor">Index</label>
+                        <input type="text" class="form-control" id="Nomor" placeholder="Nomor" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Nama">Nama</label>
+                        <input type="text" oninput="this.value = this.value.toUpperCase()" class="form-control" id="NamaBab" placeholder="Nama" />
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="Save" onclick="Save();">Save</button>
+                <button type="button" class="btn btn-primary" id="Update" style="display:none;" onclick="Edit();">Update</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="ClearScreen()" ;>Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script src="~/Scripts/jquery-1.12.4.js"></script>
+    <script src="~/Scripts/jquery.dataTables.min.js"></script>
+    <script src="~/Scripts/dataTables.bootstrap.min.js"></script>
+    <script src="~/Content/sweetalert/sweetalert.min.js"></script>
+    <link href="~/Content/sweetalert/sweetalert.css" rel="stylesheet" />
+    <script src="~/Scripts/bootstrap.js"></script>
+    @*<script src="~/Scripts/dataTables.bootstrap.js"></script>*@
+    @*<script src="~/Scripts/jquery.dataTables.js"></script>*@
+
+    <script>
+        $(document).ready(function () {
+            LoadIndexBab();
+            LoadBookCombo();
+            ClearScreen();
+            $('#babs').DataTable({
+                "aoColumns": [null, null, null, null, { "bSortable": false }],
+                "ajax": LoadIndexBab(),
+                "scrollx": true
+            });
+        });
+
+
+        function LoadIndexBab() {
+            //debugger;
+            $.ajax({
+                type: "GET",
+                url: "@Url.Action("Get", "Babs")",
+                async: false,
+                dataType: "JSON",
+                success: function (data) {
+                    var html = '';
+                    var i = 1;
+                    console.log(data);
+                    $.each(data, function (index, val) {
+                        html += '<tr>';
+                        html += '<td>' + i + '</td>';
+                        html += '<td>' + val.Book.Nomor + ' ' + val.Book.NamaBuku + '</td>';
+                        html += '<td>' + val.Nomor + '</td>';
+                        html += '<td>' + val.NamaBab + '</td>';
+                        html += '<td> <a href="#" class="btn btn-info" onclick="return GetById(' + val.Id + ')">Edit</a>';
+                        html += ' <a href="#" class="btn btn-danger" onclick="return Delete(' + val.Id + ')">Delete</a> </td>';
+                        html += '</tr>';
+                        i++;
+                    });
+                    $('.tbody').html(html);
+                }
+            })
+        }
+
+        function LoadBookCombo() {
+            $.ajax({
+                url: '@Url.Action("Get", "Books")',
+                type: 'GET',
+                dataType: 'json',
+                success: function (result) {
+                    var book = $('#Book');
+                    $.each(result, function (i, Book) {
+                        $("<option></option>").val(Book.Id).text(Book.Nomor + '. ' + Book.NamaBuku).appendTo(book);
+                    });
+                }
+            });
+        }
+
+        function Save() {
+            var bab = new Object();
+            bab.BookId = $('#Book').val();
+            bab.Nomor = $('#Nomor').val();
+            bab.NamaBab = $('#NamaBab').val();
+            $.ajax({
+                url: "@Url.Action("Save", "Babs")",
+                type: 'POST',
+                dataType: 'json',
+                data: bab,
+                success: function (result) {
+                    LoadIndexBab();
+                    $('#myModal').modal('hide');
+                    $('#myModal').removeClass('modal-open');
+                    $('.modal-backdrop').remove();
+                }
+            });
+        }
+
+        function Edit() {
+            var bab = new Object();
+            bab.Id = $('#Id').val();
+            bab.BookId = $('#Book').val();
+            bab.Nomor = $('#Nomor').val();
+            bab.NamaBab = $('#NamaBab').val();
+            $.ajax({
+                url: "@Url.Action("Save", "Babs")",
+                data: bab,
+                type: "POST",
+                dataType: "json",
+                success: function (result) {
+                    LoadIndexBab();
+                    ClearScreen();
+                    $('#myModal').modal('hide');
+                    $('#Book').val('');
+                    $('#Id').val('');
+                    $('#Nomor').val('');
+                    $('#NamaBab').val('');
+                }
+            });
+        }
+
+        function GetById(Id) {
+            //debugger;
+            $.ajax({
+                url: "@Url.Action("GetById", "Babs")/" + Id,
+                type: "GET",
+                dataType: "json",
+                success: function (result) {
+                    console.log(result);
+                    $('#Id').val(result.Id);
+                    $('#Book').val(result.BookId);
+                    $('#Nomor').val(result.Nomor);
+                    $('#NamaBab').val(result.NamaBab);
+                    $('#myModal').modal('show');
+                    $('#Update').show();
+                    $('#Save').hide();
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            })
+        }
+
+        function Delete(Id) {
+            swal({
+                title: "Are you sure?",
+                text: "You will not be able to recover this imaginary file!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes, delete it!",
+                closeOnConfirm: false
+            }, function () {
+                $.ajax({
+                    url: "@Url.Action("Delete", "Babs")/" + Id,
+                    type: "POST",
+                    success: function (response) {
+                        swal({
+                            title: "Deleted!",
+                            text: "That data has been delete!",
+                            type: "success"
+                        },
+                        function () {
+                            window.location.href = '@Url.Action("Index", "Babs")';
+                        });
+                    },
+                    error: function (response) {
+                        swal("Oops", "We couldn't connect to the server!", "error");
+                    }
+                });
+            });
+        }
+
+        function ClearScreen() {
+            $('#Update').hide();
+            $('#Save').show();
+            $('#Id').val('');
+            $('#Book').val('');
+            $('#Nomor').val('');
+            $('#NamaBab').val('');
+        }
+    </script>
+}
+
